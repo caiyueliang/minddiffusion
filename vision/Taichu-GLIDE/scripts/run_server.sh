@@ -16,8 +16,9 @@
 # ============================================================================
 
 output_path=./output/
-ckpt_path=/Users/caiyueliang/project/wzy/minddiffusion/vision/Taichu-GLIDE/pretraind_models/
-model_config_path=/glide/configs/infer_model_config_glide.yaml
+# ckpt_path=/Users/caiyueliang/project/wzy/minddiffusion/vision/Taichu-GLIDE/pretraind_models/
+ckpt_path=./pretraind_models/
+model_config_path=./configs/infer_model_config_glide.yaml
 is_chinese=True
 denoise_steps=2
 super_res_step=2

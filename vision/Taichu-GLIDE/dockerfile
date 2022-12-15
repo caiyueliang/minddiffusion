@@ -1,14 +1,19 @@
-FROM swr.cn-central-221.ovaijisuan.com/wair/pytorch_1_8_1:pytorch_1.8.1-cuda_11.1-py_3.7-ubuntu_18.04-x86_64-20221111
+FROM swr.cn-central-221.ovaijisuan.com/mindxsdk/mindspore_1.8_text2image:v0
 
-USER root
+# USER root
 
-COPY uie/uie_server_20221114/requirements.txt /tmp/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
 
 RUN pip install pip -U -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
     && pip install -r /tmp/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
-COPY uie/uie_server_20221114 /home/server
+COPY model /home/server/model
+COPY model_configs /home/server/model_configs
+COPY pretraind_models /home/server/pretraind_models
+COPY scripts /home/server/scripts
+COPY src /home/server/src
+
 
 WORKDIR /home/server
 
-CMD ["python", "src/serving.py",  "--port", "8080"]
+CMD ["bash", "./scripts/run_server.sh"]

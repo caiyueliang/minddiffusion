@@ -2,9 +2,10 @@ import sys
 import argparse
 import logging
 from flask import Flask
+sys.path.append("./")
+
 from src.diffusion import Diffusion
 
-sys.path.append("./")
 app = Flask(__name__)
 logging.getLogger().setLevel(level=logging.DEBUG)
 

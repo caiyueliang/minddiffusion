@@ -52,6 +52,7 @@ class Diffusion(object):
             return
         logging.info(f"start loading ckpt:{ckpt_file}")
         param_dict = load_checkpoint(ckpt_file)
+        # logging.info(f"[load_ckpt] param_dict: {param_dict}")
         new_param_dict = {}
         for key, val in param_dict.items():
             keyL = key.split(".")
@@ -67,7 +68,7 @@ class Diffusion(object):
             new_param_dict[new_key] = val
         if param_dict:
             param_not_load = load_param_into_net(net, new_param_dict)
-            logging.info("param not load:", param_not_load)
+            logging.info("param not load: {}".format(param_not_load))
         logging.info(f"end loading ckpt:{ckpt_file}")
 
     def read_prompts_file(self, file):

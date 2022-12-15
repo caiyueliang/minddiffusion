@@ -19,8 +19,8 @@ output_path=./output/
 ckpt_path=/Users/caiyueliang/project/wzy/minddiffusion/vision/Taichu-GLIDE/pretraind_models/
 model_config_path=/glide/configs/infer_model_config_glide.yaml
 is_chinese=True
-denoise_steps=1
-super_res_step=1
+denoise_steps=60
+super_res_step=27
 pics_generated=4
 tokenizer_model="cog-pretrain.model"
 gen_ckpt="glide_gen.ckpt"
@@ -28,7 +28,7 @@ super_ckpt="glide_super_res.ckpt"
 srgan_ckpt="srgan.ckpt"
 prompts_file=./data/prompts.txt
 
-python  src/txt2img.py \
+python  src/serving.py \
         --output_path=$output_path \
         --ckpt_path=$ckpt_path \
         --model_config_path=$model_config_path \

@@ -14,7 +14,7 @@ def hello_world():
    return 'Hello World'
 
 
-@app.route('/predict')
+@app.route('/predict', methods=['POST'])
 def predict():
    text = "一只可爱的猫坐在草地上"
    logging.info("[predict] start text:{} ...".format(text))
@@ -43,7 +43,8 @@ if __name__ == '__main__':
 
    args = parser.parse_args()
    logging.warning(args)
+
    Diffusion(args=args)
 
-   app.run(host='0.0.0.0', port=8080, debug=True)
+   app.run(host='0.0.0.0', port=8080)
 

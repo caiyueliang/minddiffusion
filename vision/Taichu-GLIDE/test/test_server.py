@@ -30,7 +30,7 @@ def test(data, host):
     my_params = json.dumps(data)
     header = {'content-type': 'application/json'}
 
-    r = requests.post(url=my_url, data=my_params, headers=header)
+    r = requests.post(url=my_url, data=my_params, headers=header, timeout=36000)
     print("[test] response: {}".format(r))
     return json.loads(r.text)
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--host', default="0.0.0.0:8080", type=str, help='host of service')
+    parser.add_argument('--host', default="127.0.0.1:8080", type=str, help='host of service')
     args = parser.parse_args()
     data = {}
     res = test(data, host=args.host)

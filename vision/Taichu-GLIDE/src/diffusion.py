@@ -40,6 +40,8 @@ class Diffusion(object):
             logging.warning("[Diffusion] init finish. ")
             self.init_flag = True
 
+        return
+
     def __new__(cls, *args, **kwargs):
         with Diffusion.single_lock:
             if not hasattr(Diffusion, "_instance"):

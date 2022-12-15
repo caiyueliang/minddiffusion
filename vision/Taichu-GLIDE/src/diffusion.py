@@ -34,6 +34,8 @@ class Diffusion(object):
 
     def __init__(self, args=None):
         if self.init_flag is False:
+            logging.warning("[Diffusion] init start. ")
+            logging.warning("[Diffusion] args: {}".format(args))
             self.init(args=args)
             logging.warning("[Diffusion] init finish. ")
             self.init_flag = True

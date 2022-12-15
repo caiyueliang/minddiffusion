@@ -42,6 +42,7 @@ if __name__ == '__main__':
    parser.add_argument("--model_config_path", default="./configs/model_config.json", help="model_config")
 
    args = parser.parse_args()
+   logging.warning(args)
    Diffusion(args=args)
 
    app.run(host='0.0.0.0', port=8080, debug=True)

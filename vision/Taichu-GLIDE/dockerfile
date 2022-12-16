@@ -16,4 +16,4 @@ COPY src /home/server/src
 
 WORKDIR /home/server
 
-CMD ["bash", "./scripts/run_server.sh"]
+CMD ["bash", "./scripts/run_server_docker.sh"]

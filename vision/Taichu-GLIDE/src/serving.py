@@ -1,7 +1,11 @@
 import sys
 import argparse
 import logging
-from flask import Flask
+import json
+from flask import Flask, request, jsonify
+from flask import current_app, make_response, send_file
+from flask.globals import session
+
 sys.path.append("./")
 
 from src.diffusion import Diffusion
@@ -9,17 +13,57 @@ from src.diffusion import Diffusion
 app = Flask(__name__)
 logging.getLogger().setLevel(level=logging.DEBUG)
 
-@app.route('/')
-def hello_world():
-   return 'Hello World'
+def response(code, **kwargs):
+    """
+        Generic HTTP JSON response method
+
+        :param code: HTTP code (int)
+        :param kwargs: Data structure for response (dict)
+        :return: HTTP Json response
+    """
+    # 添flash的信息
+    flashes = session.get("_flashes", [])
+
+    # flashes.append((category, message))
+    session["_flashes"] = []
+
+    _ret_json = jsonify(kwargs)
+    resp = make_response(_ret_json, code)
+    flash_json = []
+    for f in flashes:
+        flash_json.append([f[0], f[1]])
+    resp.headers["api_flashes"] = json.dumps(flash_json)
+    resp.headers["Content-Type"] = "application/json; charset=utf-8"
+    return resp
+
+
+@app.route('/health', methods=['POST', 'GET'])
+def health():
+    message = {
+        "status": 0,
+        "message": "success"
+    }
+    return response(200, **message)
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
-   text = "一只可爱的猫坐在草地上"
+   req = request.json
+   text = req.get('text', None)
+
+   # text = "一只可爱的猫坐在草地上"
    logging.info("[predict] start text:{} ...".format(text))
-   result = Diffusion().predict(prompt=text)
-   return result
+   # result = Diffusion().predict(prompt=text)
+
+   message = {
+      "status": 0,
+      "message": "success",
+      "data": {
+         "obs": text
+      }
+   }
+
+   return response(200, **message)
 
 
 if __name__ == '__main__':

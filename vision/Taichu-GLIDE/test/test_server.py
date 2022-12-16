@@ -40,7 +40,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', default="127.0.0.1:8080", type=str, help='host of service')
+    parser.add_argument('--text', default="人在太阳地下劳动", type=str)
     args = parser.parse_args()
-    data = {}
+    data = { "text": args.text}
     res = test(data, host=args.host)
     print(json.dumps(res, ensure_ascii=False, indent=4))

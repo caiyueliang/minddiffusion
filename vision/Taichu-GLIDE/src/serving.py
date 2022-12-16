@@ -2,6 +2,7 @@ import sys
 import argparse
 import logging
 import json
+import uuid
 from flask import Flask, request, jsonify
 from flask import current_app, make_response, send_file
 from flask.globals import session
@@ -53,15 +54,17 @@ def predict():
         req = request.json
         text = req.get('text', None)
 
+        my_uuid = str(uuid.uuid1())
+
         # text = "一只可爱的猫坐在草地上"
         logging.info("[predict] start text:{} ...".format(text))
-        text = Diffusion().predict(prompt=text)
+        msg = Diffusion().predict(uuid=my_uuid, prompt=text)
 
         message = {
             "status": 0,
             "message": "success",
             "data": {
-                "obs": text
+                "obs": msg
             }
         }
 

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
+export STORAGE_MEDIA="OBS"
 
 output_path=./output/
 ckpt_path=/home/server/pretraind_models/

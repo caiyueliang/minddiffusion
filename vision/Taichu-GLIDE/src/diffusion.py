@@ -27,6 +27,7 @@ from model.glide_text2im.model.srgan_util import SRGAN
 
 from threading import RLock
 
+from src.alluxio.s3 import send_directory_to
 
 class Diffusion(object):
     single_lock = RLock()       # 上锁
@@ -125,14 +126,17 @@ class Diffusion(object):
         # super res model 256*256 to 1024*1024
         self.srgan = SRGAN(4, ckpt_path_srgan)
 
-    def predict(self, prompt):
+    def predict(self, uuid, prompt):
         logging.info("read prompts_file...")
         # prompts = self.read_prompts_file(args.prompts_file)
         # for prompt in prompts:
 
-        ori_image_path = os.path.join(self.output_path, prompt + ".jpg")
-        upx4_image_path = os.path.join(self.output_path, prompt + "_up256.jpg")
-        upx16_image_path = os.path.join(self.output_path, prompt + "_up1024.jpg")
+        output_dir = os.path.join(self.output_path, uuid)
+        obs_upload_to = "server/text2image/diffusion_glide_mindspore/{}/".format(uuid)
+
+        ori_image_path = os.path.join(output_dir, prompt + ".jpg")
+        upx4_image_path = os.path.join(output_dir, prompt + "_up256.jpg")
+        upx16_image_path = os.path.join(output_dir, prompt + "_up1024.jpg")
 
         # Sample from the base model.
         token, mask = convert_input_to_token_gen(prompt,
@@ -168,9 +172,28 @@ class Diffusion(object):
         samples = self.srgan.sr_handle(mindspore.ops.Cast()(samples, mindspore.float32))  # use fp32
         save_images(samples, upx16_image_path)
 
-        result = {"infer_result": "success"}
+        # 文件上传到obs/minio
+        logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
+        send_directory_to(local_directory=output_dir, s3_directory_name=obs_upload_to)
+
+        obs_upload_to = "server/text2image/diffusion_glide_mindspore/{}/".format(uuid)
+
+        obs_ori_image_path = obs_upload_to + prompt + ".jpg"
+        obs_upx4_image_path = obs_upload_to + prompt + "_up256.jpg"
+        obs_upx16_image_path = obs_upload_to + prompt + "_up1024.jpg"
+        logging.warning("obs_ori_image_path: {}".format(obs_ori_image_path))
+        logging.warning("obs_upx4_image_path: {}".format(obs_upx4_image_path))
+        logging.warning("obs_upx16_image_path: {}".format(obs_upx16_image_path))
+
+        result = {"infer_result": "success",
+                  "image_dir": output_dir,
+                  "image_list": [
+                      {"size": "64*64", "url": obs_ori_image_path},
+                      {"size": "256*256", "url": obs_upx4_image_path},
+                      {"size": "1024*1024", "url": obs_upx16_image_path}
+                  ]}
         result = json.dumps(result)
-        infe_result_path = os.path.join(self.output_path, "infer_result.json")
-        with open(infe_result_path, 'w', encoding='utf-8') as f:
-            f.write(result)
+        # infe_result_path = os.path.join(self.output_path, "infer_result.json")
+        # with open(infe_result_path, 'w', encoding='utf-8') as f:
+        #     f.write(result)
         return result

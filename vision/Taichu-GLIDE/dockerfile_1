@@ -13,6 +13,7 @@ COPY pretraind_models /home/server/pretraind_models
 COPY scripts /home/server/scripts
 COPY src /home/server/src
 
+RUN pip install boto==2.49.0 esdk-obs-python==3.21.4 -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
 WORKDIR /home/server
 

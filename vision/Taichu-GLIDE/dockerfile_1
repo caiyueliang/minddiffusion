@@ -2,19 +2,23 @@ FROM swr.cn-central-221.ovaijisuan.com/wair/opt-infer-vqa:latest
 
 # USER root
 
+COPY pretraind_models/cog-pretrain.model /home/server/pretraind_models/cog-pretrain.model
+COPY pretraind_models/glide_gen.ckpt /home/server/pretraind_models/glide_gen.ckpt
+COPY pretraind_models/glide_super_res.ckpt /home/server/pretraind_models/glide_super_res.ckpt
+COPY pretraind_models/srgan.ckpt /home/server/pretraind_models/srgan.ckpt
+
 COPY requirements.txt /tmp/requirements.txt
 
 RUN pip install pip -U -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
     && pip install -r /tmp/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
+RUN pip install boto==2.49.0 esdk-obs-python==3.21.4 -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
 COPY model /home/server/model
 COPY model_configs /home/server/model_configs
-COPY pretraind_models /home/server/pretraind_models
 COPY scripts /home/server/scripts
 COPY src /home/server/src
 
-RUN pip install boto==2.49.0 esdk-obs-python==3.21.4 -i https://pypi.tuna.tsinghua.edu.cn/simple/
-
 WORKDIR /home/server
 
-CMD ["bash", "./scripts/run_server.sh"]
+CMD ["bash", "./scripts/run_server_docker.sh"]

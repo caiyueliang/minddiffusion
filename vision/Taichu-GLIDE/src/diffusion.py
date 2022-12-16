@@ -155,22 +155,22 @@ class Diffusion(object):
                                          vocab_len=self.options["n_vocab"])[:self.pics_generated]
         save_images(samples, ori_image_path)
 
-        token, mask = convert_input_to_token_super_res(prompt,
-                                                       self.pics_generated,
-                                                       self.options['text_ctx'],
-                                                       self.tokenizer)
-
-        samples = ddim_sample_loop(super_res_model=self.super_res_model,
-                                   samples=samples,
-                                   token=token,
-                                   mask=mask,
-                                   up_shape=self.up_shape,
-                                   num_timesteps=self.super_res_step,
-                                   progress=True, dtype=self.options["dtype"])
-        save_images(samples, upx4_image_path)
-
-        samples = self.srgan.sr_handle(mindspore.ops.Cast()(samples, mindspore.float32))  # use fp32
-        save_images(samples, upx16_image_path)
+        # token, mask = convert_input_to_token_super_res(prompt,
+        #                                                self.pics_generated,
+        #                                                self.options['text_ctx'],
+        #                                                self.tokenizer)
+        #
+        # samples = ddim_sample_loop(super_res_model=self.super_res_model,
+        #                            samples=samples,
+        #                            token=token,
+        #                            mask=mask,
+        #                            up_shape=self.up_shape,
+        #                            num_timesteps=self.super_res_step,
+        #                            progress=True, dtype=self.options["dtype"])
+        # save_images(samples, upx4_image_path)
+        #
+        # samples = self.srgan.sr_handle(mindspore.ops.Cast()(samples, mindspore.float32))  # use fp32
+        # save_images(samples, upx16_image_path)
 
         # 文件上传到obs/minio
         logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))

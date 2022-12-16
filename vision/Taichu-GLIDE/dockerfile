@@ -2,6 +2,11 @@ FROM swr.cn-central-221.ovaijisuan.com/mindxsdk/mindspore_1.8_text2image:v0
 
 # USER root
 
+COPY pretraind_models/cog-pretrain.model /home/server/pretraind_models/cog-pretrain.model
+COPY pretraind_models/glide_gen.ckpt /home/server/pretraind_models/glide_gen.ckpt
+COPY pretraind_models/glide_super_res.ckpt /home/server/pretraind_models/glide_super_res.ckpt
+COPY pretraind_models/srgan.ckpt /home/server/pretraind_models/srgan.ckpt
+
 COPY requirements.txt /tmp/requirements.txt
 
 RUN pip install pip -U -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
@@ -9,7 +14,6 @@ RUN pip install pip -U -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
 
 COPY model /home/server/model
 COPY model_configs /home/server/model_configs
-COPY pretraind_models /home/server/pretraind_models
 COPY scripts /home/server/scripts
 COPY src /home/server/src
 

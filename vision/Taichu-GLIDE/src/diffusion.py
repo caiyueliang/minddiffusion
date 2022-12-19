@@ -156,6 +156,9 @@ class Diffusion(object):
                                          vocab_len=self.options["n_vocab"])[:self.pics_generated]
         save_images(samples, ori_image_path)
 
+        logging.warning("部分图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
+        send_directory_to(local_directory=output_dir, s3_directory_name=obs_upload_to)
+
         token, mask = convert_input_to_token_super_res(prompt,
                                                        self.pics_generated,
                                                        self.options['text_ctx'],

@@ -132,6 +132,7 @@ class Diffusion(object):
         # for prompt in prompts:
 
         output_dir = os.path.join(self.output_path, uuid)
+        os.makedirs(name=output_dir, exist_ok=True)
         obs_upload_to = "server/text2image/diffusion_glide_mindspore/{}/".format(uuid)
 
         ori_image_path = os.path.join(output_dir, prompt + ".jpg")

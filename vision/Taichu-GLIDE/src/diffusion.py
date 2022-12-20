@@ -41,6 +41,10 @@ class Diffusion(object):
             logging.warning("[Diffusion] init start. ")
             logging.warning("[Diffusion] args: {}".format(args))
             self.init(args=args)
+
+            # 最开始先进行一次预测
+            self.predict(uuid="init", prompt="测试")
+
             logging.warning("[Diffusion] init finish. ")
             self.init_flag = True
 

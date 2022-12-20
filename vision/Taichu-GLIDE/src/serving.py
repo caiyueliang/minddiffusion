@@ -98,7 +98,6 @@ def test():
         local_dir = "/home/server/scripts/run_server_docker.sh"
         # 文件上传到obs/minio
         logging.warning("上传到obs/minio路径: {}".format(obs_upload_to))
-        # send_directory_to(local_directory=local_dir, s3_directory_name=obs_upload_to)
 
         headers = PutObjectHeader()
         headers.contentType = 'text/plain'

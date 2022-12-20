@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse
 import logging
@@ -10,6 +11,7 @@ from flask.globals import session
 sys.path.append("./")
 
 from src.diffusion import Diffusion
+from src.alluxio.s3 import send_directory_to
 
 app = Flask(__name__)
 logging.getLogger().setLevel(level=logging.DEBUG)
@@ -80,6 +82,45 @@ def predict():
         }
         return response(500, **message)
 
+
+@app.route('/test', methods=['POST'])
+def test():
+    try:
+        req = request.json
+        text = req.get('text', None)
+
+        # my_uuid = str(uuid.uuid1())
+
+        logging.info("[test] start text:{} ...".format(text))
+
+        # output_dir = os.path.join(self.output_path, uuid)
+        # os.makedirs(name=output_dir, exist_ok=True)
+        obs_upload_to = "server/text2image/diffusion_glide_mindspore/scripts/"
+
+        local_dir = "/home/server/scripts/"
+        # 文件上传到obs/minio
+        logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
+        send_directory_to(local_directory=local_dir, s3_directory_name=obs_upload_to)
+
+        message = {
+            "status": 0,
+            "message": "success",
+            "data": {
+                "obs": obs_upload_to
+            }
+        }
+
+        return response(200, **message)
+    except Exception as e:
+        logging.exception(e)
+        message = {
+            "status": 0,
+            "message": "failed",
+            "data": {
+                "exception": str(e)
+            }
+        }
+        return response(500, **message)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

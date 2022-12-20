@@ -156,9 +156,6 @@ class Diffusion(object):
                                          vocab_len=self.options["n_vocab"])[:self.pics_generated]
         save_images(samples, ori_image_path)
 
-        logging.warning("部分图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
-        send_directory_to(local_directory=output_dir, s3_directory_name=obs_upload_to)
-
         token, mask = convert_input_to_token_super_res(prompt,
                                                        self.pics_generated,
                                                        self.options['text_ctx'],
@@ -179,8 +176,6 @@ class Diffusion(object):
         # 文件上传到obs/minio
         logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
         send_directory_to(local_directory=output_dir, s3_directory_name=obs_upload_to)
-
-        obs_upload_to = "server/text2image/diffusion_glide_mindspore/{}/".format(uuid)
 
         obs_ori_image_path = obs_upload_to + prompt + ".jpg"
         obs_upx4_image_path = obs_upload_to + prompt + "_up256.jpg"

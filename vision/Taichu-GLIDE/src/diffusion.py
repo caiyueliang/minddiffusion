@@ -16,6 +16,8 @@ import logging
 import mindspore
 from mindspore.train.serialization import load_checkpoint, load_param_into_net
 
+from obs import PutObjectHeader
+
 from model.glide_utils.img_utils import save_images
 from model.glide_text2im.tokenizer.bpe import get_encoder
 from model.glide_text2im.tokenizer.chinese_tokenizer import from_pretrained
@@ -27,7 +29,8 @@ from model.glide_text2im.model.srgan_util import SRGAN
 
 from threading import RLock
 
-from src.alluxio.s3 import send_directory_to
+# from src.alluxio.s3 import send_directory_to
+from src.alluxio.hw_obs import cube_bucket, obsClient
 
 class Diffusion(object):
     single_lock = RLock()       # 上锁
@@ -175,7 +178,7 @@ class Diffusion(object):
 
         # 文件上传到obs/minio
         logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
-        send_directory_to(local_directory=output_dir, s3_directory_name=obs_upload_to)
+        # send_directory_to(local_directory=output_dir, s3_directory_name=obs_upload_to)
 
         obs_ori_image_path = obs_upload_to + prompt + ".jpg"
         obs_upx4_image_path = obs_upload_to + prompt + "_up256.jpg"
@@ -184,8 +187,13 @@ class Diffusion(object):
         logging.warning("obs_upx4_image_path: {}".format(obs_upx4_image_path))
         logging.warning("obs_upx16_image_path: {}".format(obs_upx16_image_path))
 
+        headers = PutObjectHeader()
+        headers.contentType = 'text/plain'
+        obsClient.putFile(cube_bucket, obs_ori_image_path, ori_image_path, metadata={}, headers=headers)
+        obsClient.putFile(cube_bucket, obs_upx4_image_path, upx4_image_path, metadata={}, headers=headers)
+        obsClient.putFile(cube_bucket, obs_upx16_image_path, upx16_image_path, metadata={}, headers=headers)
+
         result = {"infer_result": "success",
-                  "image_dir": output_dir,
                   "image_list": [
                       {"size": "64*64", "url": obs_ori_image_path},
                       {"size": "256*256", "url": obs_upx4_image_path},

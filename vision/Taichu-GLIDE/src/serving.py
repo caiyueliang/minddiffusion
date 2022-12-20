@@ -10,8 +10,10 @@ from flask.globals import session
 
 sys.path.append("./")
 
+from obs import PutObjectHeader
 from src.diffusion import Diffusion
-from src.alluxio.s3 import send_directory_to
+# from src.alluxio.s3 import send_directory_to
+from src.alluxio.hw_obs import cube_bucket, obsClient
 
 app = Flask(__name__)
 logging.getLogger().setLevel(level=logging.DEBUG)
@@ -89,18 +91,18 @@ def test():
         req = request.json
         text = req.get('text', None)
 
-        # my_uuid = str(uuid.uuid1())
-
         logging.info("[test] start text:{} ...".format(text))
 
-        # output_dir = os.path.join(self.output_path, uuid)
-        # os.makedirs(name=output_dir, exist_ok=True)
-        obs_upload_to = "server/text2image/diffusion_glide_mindspore/scripts/"
+        obs_upload_to = "server/text2image/diffusion_glide_mindspore/scripts/run_server_docker.sh"
 
-        local_dir = "/home/server/scripts/"
+        local_dir = "/home/server/scripts/run_server_docker.sh"
         # 文件上传到obs/minio
-        logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
-        send_directory_to(local_directory=local_dir, s3_directory_name=obs_upload_to)
+        logging.warning("上传到obs/minio路径: {}".format(obs_upload_to))
+        # send_directory_to(local_directory=local_dir, s3_directory_name=obs_upload_to)
+
+        headers = PutObjectHeader()
+        headers.contentType = 'text/plain'
+        obsClient.putFile(cube_bucket, obs_upload_to, local_dir, metadata={}, headers=headers)
 
         message = {
             "status": 0,

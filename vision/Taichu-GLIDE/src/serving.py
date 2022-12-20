@@ -67,9 +67,7 @@ def predict():
         message = {
             "status": 0,
             "message": "success",
-            "data": {
-                "obs": msg
-            }
+            "data": msg
         }
 
         return response(200, **message)

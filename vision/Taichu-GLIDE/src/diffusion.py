@@ -203,7 +203,7 @@ class Diffusion(object):
                       {"size": "256*256", "url": obs_upx4_image_path},
                       {"size": "1024*1024", "url": obs_upx16_image_path}
                   ]}
-        result = json.dumps(result)
+        # result = json.dumps(result)
         # infe_result_path = os.path.join(self.output_path, "infer_result.json")
         # with open(infe_result_path, 'w', encoding='utf-8') as f:
         #     f.write(result)

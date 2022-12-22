@@ -110,8 +110,9 @@ class Diffusion(object):
 
         for i in range(num):
             sub_img = img.crop([w / num * i, 0, w / num * (i + 1), h])
-            sub_img.save(image_file.replace(".jpg", "_{}.jpg".format(i)))
-            split_dict[i] = sub_img
+            new_file = image_file.replace(".jpg", "_{}.jpg".format(i))
+            sub_img.save(new_file)
+            split_dict[i] = new_file
 
         return split_dict
 

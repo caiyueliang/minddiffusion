@@ -20,7 +20,7 @@ ENV log_path="/var/log/app.log" \
     app_name="modelarts-text2image-GLIDE-mindspore"
 
 # 安装filbeate日志采集器发送日志到kafka
-RUN wget https://wair.obs.cn-central-221.ovaijisuan.com/soft/filebeat.tar.gz
+RUN wget https://wair.obs.cn-central-221.ovaijisuan.com/soft/filebeat.tar.gz -P /home/server/
 
 COPY model /home/server/model
 COPY model_configs /home/server/model_configs

@@ -28,7 +28,10 @@ sed -i "s/app_name/${app_name}/g" filebeat/filebeat.yml
 
 # 后台启动filebeat
 cd filebeat/
+
 nohup ./filebeat -c filebeat.yml > stdout.log 2> stderr.log &
+
+cd ..
 
 output_path=./output/
 ckpt_path=/home/server/pretraind_models/

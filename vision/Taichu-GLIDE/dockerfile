@@ -14,11 +14,6 @@ RUN pip install pip -U -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
 
 RUN pip install boto==2.49.0 esdk-obs-python==3.21.4 -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
-COPY model /home/server/model
-COPY model_configs /home/server/model_configs
-COPY scripts /home/server/scripts
-COPY src /home/server/src
-
 # 设置环境变量,修改你当前业务的日志路径和业务名称，或者通过docker启动时候覆盖环境变量
 # app_name是当前镜像业务名称，必须要填写，每个业务名称都不一样，日志采集按照这个名称送到不同的地方去做分析
 ENV log_path="/var/log/app.log" \
@@ -26,6 +21,11 @@ ENV log_path="/var/log/app.log" \
 
 # 安装filbeate日志采集器发送日志到kafka
 RUN wget https://wair.obs.cn-central-221.ovaijisuan.com/soft/filebeat.tar.gz
+
+COPY model /home/server/model
+COPY model_configs /home/server/model_configs
+COPY scripts /home/server/scripts
+COPY src /home/server/src
 
 WORKDIR /home/server
 

@@ -16,6 +16,20 @@
 # ============================================================================
 export STORAGE_MEDIA="OBS"
 
+# filebeat日志采集器
+mkdir - filebeat
+tar -xvf filebeat.tar.gz -C filebeat
+sed -i "s#log_path#${log_path}#g" filebeat/filebeat.yml
+sed -i "s/app_name/${app_name}/g" filebeat/filebeat.yml
+
+# 如果你的程序通过普通用户启动需要打开下面的开关,root启动不用修改
+#chown -R work_user:work_group filebeat
+#chmod go-w filebeat/filebeat.yml
+
+# 后台启动filebeat
+cd filebeat/
+nohup ./filebeat -c filebeat.yml > stdout.log 2> stderr.log &
+
 output_path=./output/
 ckpt_path=/home/server/pretraind_models/
 model_config_path=./configs/infer_model_config_glide.yaml

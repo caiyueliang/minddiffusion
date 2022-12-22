@@ -14,6 +14,7 @@ import json
 import logging
 
 import mindspore
+from PIL import Image
 from mindspore.train.serialization import load_checkpoint, load_param_into_net
 
 from obs import PutObjectHeader
@@ -98,6 +99,22 @@ class Diffusion(object):
         logging.info(f"the num of all random captions: {len(captions)}")
         return captions
 
+    @staticmethod
+    def image_split(image_file, num=2):
+        split_dict = dict()
+
+        img = Image.open(image_file)        # 读入当前图片
+        # img = img.convert('RGB')          # 转换成RGB三通道格式
+        w = img.size[0]  # 获取图片宽度
+        h = img.size[1]  # 获取图片高度
+
+        for i in range(num):
+            sub_img = img.crop([w / num * i, 0, w / num * (i + 1), h])
+            sub_img.save(image_file.replace(".jpg", "_{}.jpg".format(i)))
+            split_dict[i] = sub_img
+
+        return split_dict
+
     def init(self, args):
         mindspore.context.set_context(mode=mindspore.context.GRAPH_MODE, device_id=0)
 
@@ -133,10 +150,8 @@ class Diffusion(object):
         # super res model 256*256 to 1024*1024
         self.srgan = SRGAN(4, ckpt_path_srgan)
 
-    def predict(self, uuid, prompt):
+    def predict(self, uuid, prompt, pics_generated=1):
         logging.info("read prompts_file...")
-        # prompts = self.read_prompts_file(args.prompts_file)
-        # for prompt in prompts:
 
         output_dir = os.path.join(self.output_path, uuid)
         os.makedirs(name=output_dir, exist_ok=True)
@@ -182,14 +197,10 @@ class Diffusion(object):
 
         # 文件上传到obs/minio
         logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
-        # send_directory_to(local_directory=output_dir, s3_directory_name=obs_upload_to)
 
         obs_ori_image_path = obs_upload_to + prompt + ".jpg"
         obs_upx4_image_path = obs_upload_to + prompt + "_up256.jpg"
         obs_upx16_image_path = obs_upload_to + prompt + "_up1024.jpg"
-        logging.warning("obs_ori_image_path: {}".format(obs_ori_image_path))
-        logging.warning("obs_upx4_image_path: {}".format(obs_upx4_image_path))
-        logging.warning("obs_upx16_image_path: {}".format(obs_upx16_image_path))
 
         headers = PutObjectHeader()
         headers.contentType = 'text/plain'
@@ -197,14 +208,40 @@ class Diffusion(object):
         obsClient.putFile(cube_bucket, obs_upx4_image_path, upx4_image_path, metadata={}, headers=headers)
         obsClient.putFile(cube_bucket, obs_upx16_image_path, upx16_image_path, metadata={}, headers=headers)
 
-        result = {"infer_result": "success",
-                  "image_list": [
-                      {"size": "64*64", "url": obs_ori_image_path},
-                      {"size": "256*256", "url": obs_upx4_image_path},
-                      {"size": "1024*1024", "url": obs_upx16_image_path}
-                  ]}
-        # result = json.dumps(result)
-        # infe_result_path = os.path.join(self.output_path, "infer_result.json")
-        # with open(infe_result_path, 'w', encoding='utf-8') as f:
-        #     f.write(result)
+        if self.pics_generated > 1:
+            result = {"infer_result": "success", "images": []}
+
+            ori_image_dict = self.image_split(image_file=ori_image_path, num=self.pics_generated)
+            upx4_image_dict = self.image_split(image_file=upx4_image_path, num=self.pics_generated)
+            upx16_image_dict = self.image_split(image_file=upx16_image_path, num=self.pics_generated)
+
+            for key in ori_image_dict.keys():
+                sub_image = dict()
+
+                local_image = ori_image_dict[key]
+                image_name = os.path.basename(local_image)
+                obs_image_path = os.path.join(obs_upload_to, image_name)
+                obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
+                sub_image["64*64"] = obs_image_path
+
+                local_image = upx4_image_dict[key]
+                image_name = os.path.basename(local_image)
+                obs_image_path = os.path.join(obs_upload_to, image_name)
+                obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
+                sub_image["256*256"] = obs_image_path
+
+                local_image = upx16_image_dict[key]
+                image_name = os.path.basename(local_image)
+                obs_image_path = os.path.join(obs_upload_to, image_name)
+                obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
+                sub_image["1024*1024"] = obs_image_path
+
+                result["images"].append(sub_image)
+        else:
+            result = {"infer_result": "success",
+                      "image_list": [{
+                          "64*64": obs_ori_image_path,
+                          "256*256": obs_upx4_image_path,
+                          "1024*1024": obs_upx16_image_path
+                      }]}
         return result

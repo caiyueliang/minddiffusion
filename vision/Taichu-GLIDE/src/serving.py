@@ -16,7 +16,7 @@ from src.diffusion import Diffusion
 from src.alluxio.hw_obs import cube_bucket, obsClient
 
 app = Flask(__name__)
-logging.getLogger().setLevel(level=logging.DEBUG)
+logging.getLogger().setLevel(level=logging.INFO)
 
 
 def response(code, **kwargs):
@@ -57,12 +57,12 @@ def predict():
     try:
         req = request.json
         text = req.get('text', None)
+        pics_generated = req.get('pics_generated', 2)
 
         my_uuid = str(uuid.uuid1())
 
-        # text = "一只可爱的猫坐在草地上"
-        logging.info("[predict] start text:{} ...".format(text))
-        msg = Diffusion().predict(uuid=my_uuid, prompt=text)
+        logging.warning("[predict][{}] start text:{}, pics_generated: {} ...".format(my_uuid, text, pics_generated))
+        msg = Diffusion().predict(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
 
         message = {
             "status": 0,

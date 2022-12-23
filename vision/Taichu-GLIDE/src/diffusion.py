@@ -223,19 +223,19 @@ class Diffusion(object):
                 image_name = os.path.basename(local_image)
                 obs_image_path = os.path.join(obs_upload_to, image_name)
                 obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
-                sub_image["64*64"] = obs_image_path
+                sub_image["64*64"] = "https://publish-data.obs.cn-central-221.ovaijisuan.com/server/{}".format(obs_image_path)
 
                 local_image = upx4_image_dict[key]
                 image_name = os.path.basename(local_image)
                 obs_image_path = os.path.join(obs_upload_to, image_name)
                 obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
-                sub_image["256*256"] = obs_image_path
+                sub_image["256*256"] = "https://publish-data.obs.cn-central-221.ovaijisuan.com/server/{}".format(obs_image_path)
 
                 local_image = upx16_image_dict[key]
                 image_name = os.path.basename(local_image)
                 obs_image_path = os.path.join(obs_upload_to, image_name)
                 obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
-                sub_image["1024*1024"] = obs_image_path
+                sub_image["1024*1024"] = "https://publish-data.obs.cn-central-221.ovaijisuan.com/server/{}".format(obs_image_path)
 
                 result["images"].append(sub_image)
         else:

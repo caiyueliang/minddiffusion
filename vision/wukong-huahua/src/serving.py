@@ -10,13 +10,11 @@ from flask.globals import session
 
 sys.path.append("./")
 
-from obs import PutObjectHeader
 from src.wukong import WuKong
-# from src.alluxio.s3 import send_directory_to
-from src.alluxio.hw_obs import cube_bucket, obsClient
+from src.log_utils import set_log_file
+
 
 app = Flask(__name__)
-logging.getLogger().setLevel(level=logging.INFO)
 
 
 def response(code, **kwargs):
@@ -202,7 +200,11 @@ if __name__ == '__main__':
         choices=["full", "autocast"],
         default="autocast"
     )
+    parser.add_argument('--log_file', default="./log/server.log", type=str, help='log dir')
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
+    set_log_file(logger_obj=logging.getLogger(), filename=args.log_file)
 
     logging.warning(args)
 

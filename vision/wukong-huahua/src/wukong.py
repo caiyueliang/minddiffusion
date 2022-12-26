@@ -44,7 +44,7 @@ class WuKong(object):
             self.init(opt=args)
 
             # 最开始先进行一次预测
-            self.predict(uuid="init", prompt="测试", n_iter=1, n_samples=4, H=128, W=128, scale=7.5, ddim_steps=30)
+            # self.predict(uuid="init", prompt="测试", n_iter=1, n_samples=4, H=128, W=128, scale=7.5, ddim_steps=30)
 
             logging.warning("[WuKong] init finish. ")
             self.init_flag = True

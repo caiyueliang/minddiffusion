@@ -204,7 +204,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
-    set_log_file(logger_obj=logging.getLogger(), filename=args.log_file)
+    # set_log_file(logger_obj=logging.getLogger(), filename=args.log_file)
 
     logging.warning(args)
 

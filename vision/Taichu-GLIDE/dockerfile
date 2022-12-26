@@ -16,7 +16,7 @@ RUN pip install boto==2.49.0 esdk-obs-python==3.21.4 -i https://pypi.tuna.tsingh
 
 # 设置环境变量,修改你当前业务的日志路径和业务名称，或者通过docker启动时候覆盖环境变量
 # app_name是当前镜像业务名称，必须要填写，每个业务名称都不一样，日志采集按照这个名称送到不同的地方去做分析
-ENV log_path="/var/log/app.log" \
+ENV log_path="/home/server/log/server.log" \
     app_name="modelarts-text2image-GLIDE-mindspore"
 
 # 安装filbeate日志采集器发送日志到kafka

@@ -12,8 +12,8 @@ sys.path.append("./")
 
 from obs import PutObjectHeader
 from src.diffusion import Diffusion
-# from src.alluxio.s3 import send_directory_to
 from src.alluxio.hw_obs import cube_bucket, obsClient
+from src.log_utils import set_log_file
 
 app = Flask(__name__)
 logging.getLogger().setLevel(level=logging.INFO)
@@ -140,7 +140,13 @@ if __name__ == '__main__':
     parser.add_argument("--ckpt_path", default="pretraind_models/", type=str, help="ckpt init path")
     parser.add_argument("--model_config_path", default="./configs/model_config.json", help="model_config")
 
+    parser.add_argument('--log_file', default="./log/server.log", type=str, help='log dir')
+
     args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO)
+    set_log_file(logger_obj=logging.getLogger(), filename=args.log_file)
+
     logging.warning(args)
 
     Diffusion(args=args)

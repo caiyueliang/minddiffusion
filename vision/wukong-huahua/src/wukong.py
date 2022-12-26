@@ -40,24 +40,24 @@ class WuKong(object):
 
     def __init__(self, args=None):
         if self.init_flag is False:
-            logging.warning("[Diffusion] init start. ")
-            logging.warning("[Diffusion] args: {}".format(args))
+            logging.warning("[WuKong] init start. ")
+            logging.warning("[WuKong] args: {}".format(args))
             self.init(args=args)
 
             # 最开始先进行一次预测
             self.predict(uuid="init", prompt="测试")
 
-            logging.warning("[Diffusion] init finish. ")
+            logging.warning("[WuKong] init finish. ")
             self.init_flag = True
 
         return
 
     def __new__(cls, *args, **kwargs):
-        with Diffusion.single_lock:
-            if not hasattr(Diffusion, "_instance"):
-                Diffusion._instance = object.__new__(cls)
+        with WuKong.single_lock:
+            if not hasattr(WuKong, "_instance"):
+                WuKong._instance = object.__new__(cls)
 
-        return Diffusion._instance
+        return WuKong._instance
 
     def load_ckpt(self, net, ckpt_file, model_type="base"):
         if not ckpt_file:

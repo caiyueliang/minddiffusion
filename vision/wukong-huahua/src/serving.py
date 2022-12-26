@@ -83,45 +83,6 @@ def predict():
         return response(500, **message)
 
 
-@app.route('/test', methods=['POST'])
-def test():
-    try:
-        req = request.json
-        text = req.get('text', None)
-
-        logging.info("[test] start text:{} ...".format(text))
-
-        obs_upload_to = "server/text2image/diffusion_glide_mindspore/scripts/run_server_docker.sh"
-
-        local_dir = "/home/server/scripts/run_server_docker.sh"
-        # 文件上传到obs/minio
-        logging.warning("上传到obs/minio路径: {}".format(obs_upload_to))
-
-        headers = PutObjectHeader()
-        headers.contentType = 'text/plain'
-        obsClient.putFile(cube_bucket, obs_upload_to, local_dir, metadata={}, headers=headers)
-
-        message = {
-            "status": 0,
-            "message": "success",
-            "data": {
-                "obs": obs_upload_to
-            }
-        }
-
-        return response(200, **message)
-    except Exception as e:
-        logging.exception(e)
-        message = {
-            "status": 0,
-            "message": "failed",
-            "data": {
-                "exception": str(e)
-            }
-        }
-        return response(500, **message)
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
@@ -137,7 +98,7 @@ if __name__ == '__main__':
         type=str,
         nargs="?",
         help="dir to write results to",
-        default="outputs/txt2img-samples"
+        default="./outputs/"
     )
     parser.add_argument(
         "--skip_grid",
@@ -221,7 +182,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--ckpt",
         type=str,
-        default="models/wukong-huahua-ms.ckpt",
+        default="./pretraind_models/wukong-huahua-ms.ckpt",
         help="path to checkpoint of model",
     )
     parser.add_argument(

@@ -143,55 +143,62 @@ class WuKong(object):
 
         config = OmegaConf.load(f"{opt.config}")
         self.model = self.load_model_from_config(config, f"{opt.ckpt}")
-
         self.sampler = PLMSSampler(self.model)
+
         os.makedirs(opt.outdir, exist_ok=True)
-        outpath = opt.outdir
+        self.out_path = opt.outdir
 
-        self.batch_size = opt.n_samples
-        n_rows = opt.n_rows if opt.n_rows > 0 else self.batch_size
-        if not opt.from_file:
-            prompt = opt.prompt
-            assert prompt is not None
-            data = [self.batch_size * [prompt]]
-        else:
-            print(f"reading prompts from {opt.from_file}")
-            with open(opt.from_file, "r") as f:
-                data = f.read().splitlines()
-                data = list(self.chunk(data, self.batch_size))
+        # self.batch_size = opt.n_samples
+        # n_rows = opt.n_rows if opt.n_rows > 0 else self.batch_size
 
-        sample_path = os.path.join(outpath, "samples")
-        os.makedirs(sample_path, exist_ok=True)
-        base_count = len(os.listdir(sample_path))
-        grid_count = len(os.listdir(outpath)) - 1
+        # if not opt.from_file:
+        #     prompt = opt.prompt
+        #     assert prompt is not None
+        #     data = [self.batch_size * [prompt]]
+        # else:
+        #     print(f"reading prompts from {opt.from_file}")
+        #     with open(opt.from_file, "r") as f:
+        #         data = f.read().splitlines()
+        #         data = list(self.chunk(data, self.batch_size))
+
+        # sample_path = os.path.join(outpath, "samples")
+        # os.makedirs(sample_path, exist_ok=True)
+        # base_count = len(os.listdir(sample_path))
+        # grid_count = len(os.listdir(outpath)) - 1
+
+    def predict(self, uuid, prompt, n_samples=4, H=512, W=512):
+        logging.info("read prompts_file...")
+
+        # prompt = opt.prompt
+        assert prompt is not None
+        data = [self.batch_size * [prompt]]
+
+        batch_size = n_samples
 
         start_code = None
-        if opt.fixed_code:
-            stdnormal = ms.ops.StandardNormal()
-            self.start_code = stdnormal((opt.n_samples, 4, opt.H // 8, opt.W // 8))
-
-    def predict(self, uuid, prompt, pics_generated=1):
-        logging.info("read prompts_file...")
+        if self.opt.fixed_code:
+            std_normal = ms.ops.StandardNormal()
+            start_code = std_normal((n_samples, 4, H // 8, W // 8))
 
         all_samples = list()
         for n in range(self.opt.n_iter):
             for prompts in data:
                 uc = None
                 if self.opt.scale != 1.0:
-                    uc = self.model.get_learned_conditioning(self.batch_size * [""])
+                    uc = self.model.get_learned_conditioning(batch_size * [""])
                 if isinstance(prompts, tuple):
                     prompts = list(prompts)
                 c = self.model.get_learned_conditioning(prompts)
-                shape = [4, self.opt.H // 8, self.opt.W // 8]
+                shape = [4, H // 8, W // 8]
                 samples_ddim, _ = self.sampler.sample(S=self.opt.ddim_steps,
                                                       conditioning=c,
-                                                      batch_size=self.opt.n_samples,
+                                                      batch_size=batch_size,
                                                       shape=shape,
                                                       verbose=False,
                                                       unconditional_guidance_scale=self.opt.scale,
                                                       unconditional_conditioning=uc,
                                                       eta=self.opt.ddim_eta,
-                                                      x_T=self.start_code)
+                                                      x_T=start_code)
                 x_samples_ddim = self.model.decode_first_stage(samples_ddim)
                 x_samples_ddim = ms.ops.clip_by_value((x_samples_ddim + 1.0) / 2.0,
                                                       clip_value_min=0.0, clip_value_max=1.0)
@@ -207,7 +214,6 @@ class WuKong(object):
                 if not self.opt.skip_grid:
                     all_samples.append(x_samples_ddim_numpy)
 
-            print(f"Your samples are ready and waiting for you here: \n{outpath} \n"
-                  f" \nEnjoy.")
+            # print(f"Your samples are ready and waiting for you here: \n{outpath} \n\nEnjoy.")
 
         return result

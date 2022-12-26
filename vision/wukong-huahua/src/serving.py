@@ -55,24 +55,42 @@ def predict():
     try:
         req = request.json
         text = req.get('text', None)
+        style = req.get('style', None)
         n_samples = req.get('n_samples', 1)
         n_iter = req.get('n_iter', 1)
         h = req.get('h', 512)
         w = req.get('w', 512)
 
+        scale = req.get('scale', 7.5)
+        ddim_steps = req.get('ddim_steps', 50)
+
         my_uuid = str(uuid.uuid1())
 
-        logging.warning("[predict][{}] start text:{}, n_iter: {}, n_samples: {}, size: ({}, {}) ...".format(
-            my_uuid, text, n_iter, n_samples, h, w))
-        msg = WuKong().predict(uuid=my_uuid, prompt=text, n_iter=n_iter, n_samples=n_samples, H=h, W=w)
+        logging.warning("[predict][{}] start text:{}, style:{}, n_iter:{}, n_samples:{}, scale:{}, ddim_steps:{}, size: ({}, {}) ...".format(
+            my_uuid, text, style, n_iter, n_samples, scale, ddim_steps, h, w))
 
-        message = {
-            "status": 0,
-            "message": "success",
-            "data": msg
-        }
+        if text is not None:
+            if style is not  None:
+                prompt = text + " " + style
+            else:
+                prompt = text
 
-        return response(200, **message)
+            msg = WuKong().predict(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
+                                   scale=scale, ddim_steps=ddim_steps)
+
+            message = {
+                "status": 0,
+                "message": "success",
+                "data": msg
+            }
+            return response(200, **message)
+        else:
+            message = {
+                "status": 200,
+                "message": "failed",
+                "data": "parameter [text] is need"
+            }
+            return response(200, **message)
     except Exception as e:
         logging.exception(e)
         message = {

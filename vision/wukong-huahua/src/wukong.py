@@ -44,7 +44,7 @@ class WuKong(object):
             self.init(opt=args)
 
             # 最开始先进行一次预测
-            # self.predict(uuid="init", prompt="测试")
+            self.predict(uuid="init", prompt="测试", n_iter=1, n_samples=1, H=128, W=128, scale=7.5, ddim_steps=1)
 
             logging.warning("[WuKong] init finish. ")
             self.init_flag = True
@@ -167,8 +167,8 @@ class WuKong(object):
         # base_count = len(os.listdir(sample_path))
         # grid_count = len(os.listdir(outpath)) - 1
 
-    def predict(self, uuid, prompt, n_iter=4, n_samples=4, H=512, W=512):
-        logging.info("read prompts_file...")
+    def predict(self, uuid, prompt, n_iter=1, n_samples=4, H=512, W=512, scale=7.5, ddim_steps=50):
+        logging.info("[predict] start ...")
 
         output_dir = os.path.join(self.output_path, uuid)
         os.makedirs(name=output_dir, exist_ok=True)
@@ -192,19 +192,20 @@ class WuKong(object):
         all_samples = list()
         for n in range(n_iter):
             for prompts in data:
+                logging.info("n: {}, prompts: {} ...".format(n, prompts))
                 uc = None
-                if self.opt.scale != 1.0:
+                if scale != 1.0:
                     uc = self.model.get_learned_conditioning(batch_size * [""])
                 if isinstance(prompts, tuple):
                     prompts = list(prompts)
                 c = self.model.get_learned_conditioning(prompts)
                 shape = [4, H // 8, W // 8]
-                samples_ddim, _ = self.sampler.sample(S=self.opt.ddim_steps,
+                samples_ddim, _ = self.sampler.sample(S=ddim_steps,
                                                       conditioning=c,
                                                       batch_size=batch_size,
                                                       shape=shape,
                                                       verbose=False,
-                                                      unconditional_guidance_scale=self.opt.scale,
+                                                      unconditional_guidance_scale=scale,
                                                       unconditional_conditioning=uc,
                                                       eta=self.opt.ddim_eta,
                                                       x_T=start_code)
@@ -227,9 +228,10 @@ class WuKong(object):
                         image_name = os.path.basename(local_image)
                         obs_image_path = os.path.join(obs_upload_to, image_name)
                         obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
-                        result["images"].append(
-                            "https://publish-data.obs.cn-central-221.ovaijisuan.com/{}".format(obs_image_path)
-                        )
+
+                        obs_image = "https://publish-data.obs.cn-central-221.ovaijisuan.com/{}".format(obs_image_path)
+                        result["images"].append(obs_image)
+                        logging.info("image_path: {}".format(obs_image))
 
                 if not self.opt.skip_grid:
                     all_samples.append(x_samples_ddim_numpy)

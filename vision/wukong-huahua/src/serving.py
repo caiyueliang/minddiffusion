@@ -11,7 +11,7 @@ from flask.globals import session
 sys.path.append("./")
 
 from obs import PutObjectHeader
-from src.diffusion import Diffusion
+from src.wukong import WuKong
 # from src.alluxio.s3 import send_directory_to
 from src.alluxio.hw_obs import cube_bucket, obsClient
 
@@ -62,7 +62,7 @@ def predict():
         my_uuid = str(uuid.uuid1())
 
         logging.warning("[predict][{}] start text:{}, pics_generated: {} ...".format(my_uuid, text, pics_generated))
-        msg = Diffusion().predict(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
+        msg = WuKong().predict(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
 
         message = {
             "status": 0,
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logging.warning(args)
 
-    Diffusion(args=args)
+    WuKong(args=args)
 
     app.run(host='0.0.0.0', port=8080)
 

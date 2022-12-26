@@ -2,28 +2,23 @@ FROM swr.cn-central-221.ovaijisuan.com/mindxsdk/mindspore_1.8_text2image:v0
 
 # USER root
 
-COPY pretraind_models/cog-pretrain.model /home/server/pretraind_models/cog-pretrain.model
-COPY pretraind_models/glide_gen.ckpt /home/server/pretraind_models/glide_gen.ckpt
-COPY pretraind_models/glide_super_res.ckpt /home/server/pretraind_models/glide_super_res.ckpt
-COPY pretraind_models/srgan.ckpt /home/server/pretraind_models/srgan.ckpt
+COPY pretraind_models /home/server/pretraind_models
 
 COPY requirements.txt /tmp/requirements.txt
 
 RUN pip install pip -U -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
     && pip install -r /tmp/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
-RUN pip install boto==2.49.0 esdk-obs-python==3.21.4 -i https://pypi.tuna.tsinghua.edu.cn/simple/
-
 # 设置环境变量,修改你当前业务的日志路径和业务名称，或者通过docker启动时候覆盖环境变量
 # app_name是当前镜像业务名称，必须要填写，每个业务名称都不一样，日志采集按照这个名称送到不同的地方去做分析
 ENV log_path="/var/log/app.log" \
-    app_name="modelarts-text2image-GLIDE-mindspore"
+    app_name="modelarts-text2image-WuKong-mindspore"
 
 # 安装filbeate日志采集器发送日志到kafka
 RUN wget https://wair.obs.cn-central-221.ovaijisuan.com/soft/filebeat.tar.gz -P /home/server/
 
-COPY model /home/server/model
-COPY model_configs /home/server/model_configs
+COPY configs /home/server/configs
+COPY ldm /home/server/ldm
 COPY scripts /home/server/scripts
 COPY src /home/server/src
 

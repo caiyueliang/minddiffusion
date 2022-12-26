@@ -23,6 +23,7 @@ from ldm.models.diffusion.plms import PLMSSampler
 
 from PIL import Image
 
+from obs import PutObjectHeader
 
 from threading import RLock
 
@@ -82,15 +83,15 @@ class WuKong(object):
 
     @staticmethod
     def load_model_from_config(config, ckpt, verbose=False):
-        print(f"Loading model from {ckpt}")
+        logging.warning(f"Loading model from {ckpt}")
         model = instantiate_from_config(config.model)
         if os.path.exists(ckpt):
             param_dict = ms.load_checkpoint(ckpt)
             if param_dict:
                 param_not_load = ms.load_param_into_net(model, param_dict)
-                print("param not load:", param_not_load)
+                logging.warning("param not load: {}".format(param_not_load))
         else:
-            print(f"{ckpt} not exist:")
+            logging.warning(f"{ckpt} not exist:")
 
         return model
 
@@ -146,7 +147,7 @@ class WuKong(object):
         self.sampler = PLMSSampler(self.model)
 
         os.makedirs(opt.outdir, exist_ok=True)
-        self.out_path = opt.outdir
+        self.output_path = opt.outdir
 
         # self.batch_size = opt.n_samples
         # n_rows = opt.n_rows if opt.n_rows > 0 else self.batch_size
@@ -166,22 +167,30 @@ class WuKong(object):
         # base_count = len(os.listdir(sample_path))
         # grid_count = len(os.listdir(outpath)) - 1
 
-    def predict(self, uuid, prompt, n_samples=4, H=512, W=512):
+    def predict(self, uuid, prompt, n_iter=4, n_samples=4, H=512, W=512):
         logging.info("read prompts_file...")
 
-        # prompt = opt.prompt
-        assert prompt is not None
-        data = [self.batch_size * [prompt]]
+        output_dir = os.path.join(self.output_path, uuid)
+        os.makedirs(name=output_dir, exist_ok=True)
+
+        headers = PutObjectHeader()
+        headers.contentType = 'text/plain'
+        obs_upload_to = "server/text2image/diffusion_wukong_mindspore/{}/".format(uuid)
 
         batch_size = n_samples
+
+        # prompt = opt.prompt
+        # assert prompt is not None
+        data = [batch_size * [prompt]]
 
         start_code = None
         if self.opt.fixed_code:
             std_normal = ms.ops.StandardNormal()
             start_code = std_normal((n_samples, 4, H // 8, W // 8))
 
+        result = {"infer_result": "success", "images": []}
         all_samples = list()
-        for n in range(self.opt.n_iter):
+        for n in range(n_iter):
             for prompts in data:
                 uc = None
                 if self.opt.scale != 1.0:
@@ -208,8 +217,19 @@ class WuKong(object):
                     for x_sample in x_samples_ddim_numpy:
                         x_sample = 255. * x_sample.transpose(1, 2, 0)
                         img = Image.fromarray(x_sample.astype(np.uint8))
-                        img.save(os.path.join(sample_path, f"{base_count:05}.png"))
+
+                        base_count = len(os.listdir(output_dir))
+                        local_image = os.path.join(output_dir, f"{base_count:05}.png")
+                        img.save(local_image)
                         base_count += 1
+
+                        # 图片上传obs
+                        image_name = os.path.basename(local_image)
+                        obs_image_path = os.path.join(obs_upload_to, image_name)
+                        obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
+                        result["images"].append(
+                            "https://publish-data.obs.cn-central-221.ovaijisuan.com/{}".format(obs_image_path)
+                        )
 
                 if not self.opt.skip_grid:
                     all_samples.append(x_samples_ddim_numpy)

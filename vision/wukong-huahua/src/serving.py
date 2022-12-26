@@ -57,12 +57,16 @@ def predict():
     try:
         req = request.json
         text = req.get('text', None)
-        pics_generated = req.get('pics_generated', 2)
+        n_samples = req.get('n_samples', 1)
+        n_iter = req.get('n_iter', 1)
+        h = req.get('h', 512)
+        w = req.get('w', 512)
 
         my_uuid = str(uuid.uuid1())
 
-        logging.warning("[predict][{}] start text:{}, pics_generated: {} ...".format(my_uuid, text, pics_generated))
-        msg = WuKong().predict(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
+        logging.warning("[predict][{}] start text:{}, n_iter: {}, n_samples: {}, size: ({}, {}) ...".format(
+            my_uuid, text, n_iter, n_samples, h, w))
+        msg = WuKong().predict(uuid=my_uuid, prompt=text, n_iter=n_iter, n_samples=n_samples, H=h, W=w)
 
         message = {
             "status": 0,

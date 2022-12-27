@@ -70,7 +70,7 @@ def predict():
             my_uuid, text, style, n_iter, n_samples, scale, ddim_steps, h, w))
 
         if text is not None:
-            if style is not  None:
+            if style is not None:
                 prompt = text + " " + style
             else:
                 prompt = text
@@ -101,6 +101,17 @@ def predict():
             }
         }
         return response(500, **message)
+
+
+def print_dir(root_dir):
+    logging.warning("[print_dir] start : {} ...".format(root_dir))
+    for parent, _, fileNames in os.walk(root_dir):
+            for name in fileNames:
+                if name.startswith('.'):  # 去除隐藏文件
+                    continue
+                else:
+                    logging.warning("{}, {}".format(parent, name))
+    logging.warning("[print_dir] end ...")
 
 
 if __name__ == '__main__':
@@ -227,6 +238,8 @@ if __name__ == '__main__':
     logging.warning(args)
 
     WuKong(args=args)
+
+    print_dir(root_dir="/home/server")
 
     app.run(host='0.0.0.0', port=8080, threaded=False)
 

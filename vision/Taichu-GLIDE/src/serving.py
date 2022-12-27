@@ -151,5 +151,5 @@ if __name__ == '__main__':
 
     Diffusion(args=args)
 
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080, threaded=False)
 

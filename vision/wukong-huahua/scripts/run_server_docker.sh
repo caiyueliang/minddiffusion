@@ -19,6 +19,7 @@ export STORAGE_MEDIA="OBS"
 # filebeat日志采集器
 mkdir filebeat
 tar -xvf filebeat.tar.gz -C filebeat
+chown -R root.root filebeat
 sed -i "s#log_path#${log_path}#g" filebeat/filebeat.yml
 sed -i "s/app_name/${app_name}/g" filebeat/filebeat.yml
 

@@ -14,14 +14,14 @@ RUN pip install pip -U -i https://pypi.tuna.tsinghua.edu.cn/simple/ \
 ENV log_path="/home/server/log/server.log" \
     app_name="modelarts-text2image-wukong-mindspore"
 
+WORKDIR /home/server
+
 # 安装filbeate日志采集器发送日志到kafka
-RUN wget https://wair.obs.cn-central-221.ovaijisuan.com/soft/filebeat.tar.gz -P /home/server/
+RUN wget https://wair.obs.cn-central-221.ovaijisuan.com/soft/filebeat.tar.gz
 
 COPY configs /home/server/configs
 COPY ldm /home/server/ldm
 COPY scripts /home/server/scripts
 COPY src /home/server/src
-
-WORKDIR /home/server
 
 CMD ["bash", "./scripts/run_server_docker.sh"]

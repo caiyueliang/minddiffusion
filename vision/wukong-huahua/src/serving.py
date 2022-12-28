@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
     WuKong(args=args)
 
-    print_dir(root_dir="/home/server")
+    print_dir(root_dir="/home/server/log/")
 
     app.run(host='0.0.0.0', port=8080, threaded=False)
 

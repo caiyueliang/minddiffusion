@@ -79,18 +79,23 @@ class Diffusion(object):
 
     def get_object_from_obs(self, bucket_name, obs_path, local_path):
         obsClient.getObject(bucketName=bucket_name, objectKey=obs_path, downloadPath=local_path)
+
     def download_model_from_obs(self, args):
         if args.download_model is True:
             logger.warning("[download_model_from_obs] download model from: {}".format(args.model_obs_path))
+            self.get_object_from_obs(bucket_name=args.model_bucket_name,
+                                     obs_path=args.model_obs_path,
+                                     local_path=args.ckpt_path)
+            logger.warning("[download_model_from_obs] download model {} success.".format(args.model_obs_path))
         else:
             logger.warning("[download_model_from_obs] do not download model from obs ...")
 
     def load_ckpt(self, net, ckpt_file, model_type="base"):
         if not ckpt_file:
             return
-        logger.info(f"start loading ckpt:{ckpt_file}")
+        logger.warning(f"start loading ckpt:{ckpt_file}")
         param_dict = load_checkpoint(ckpt_file)
-        # logger.info(f"[load_ckpt] param_dict: {param_dict}")
+
         new_param_dict = {}
         for key, val in param_dict.items():
             keyL = key.split(".")
@@ -106,8 +111,8 @@ class Diffusion(object):
             new_param_dict[new_key] = val
         if param_dict:
             param_not_load = load_param_into_net(net, new_param_dict)
-            logger.info("param not load: {}".format(param_not_load))
-        logger.info(f"end loading ckpt:{ckpt_file}")
+            logger.warning("param not load: {}".format(param_not_load))
+        logger.warning(f"end loading ckpt:{ckpt_file}")
 
     def read_prompts_file(self, file):
         prompts = []

@@ -158,6 +158,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--download_model', default=False, type=bool, help='download model flag')
     parser.add_argument('--model_obs_path', default="", type=str, help='download model obs path')
+    parser.add_argument('--model_bucket_name', default="", type=str, help='download model bucket name')
 
     args = parser.parse_args()
 

@@ -15,6 +15,7 @@ import logging
 
 import mindspore
 from PIL import Image
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, as_completed
 from mindspore.train.serialization import load_checkpoint, load_param_into_net
 
 from obs import PutObjectHeader
@@ -44,6 +45,10 @@ class Diffusion(object):
         if self.init_flag is False:
             logger.warning("[Diffusion] init start. ")
             logger.warning("[Diffusion] args: {}".format(args))
+
+            # 创建线程池
+            self.thread_executor = ThreadPoolExecutor(max_workers=args.thread_pool_size)
+
             self.init(args=args)
 
             # 最开始先进行一次预测
@@ -153,6 +158,20 @@ class Diffusion(object):
 
         # super res model 256*256 to 1024*1024
         self.srgan = SRGAN(4, ckpt_path_srgan)
+
+    def predict_thread(self, uuid, prompt, pics_generated=1):
+        all_task = list()
+
+        logger.warning("[predict_thread] uuid: {} start ...".format(uuid))
+        all_task.append(self.thread_executor.submit(self.predict, uuid, prompt, pics_generated))
+        logger.warning("[predict_thread] uuid: {} submit to  ThreadPoolExecutor ...".format(uuid))
+
+        wait(all_task, return_when=ALL_COMPLETED)
+
+        for task in as_completed(all_task):
+            result = task.result()
+            logger.warning("[predict_thread] uuid: {} end ...".format(uuid))
+            return result
 
     def predict(self, uuid, prompt, pics_generated=1):
         logger.info("[predict] start ...")

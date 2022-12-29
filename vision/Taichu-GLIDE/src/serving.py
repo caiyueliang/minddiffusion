@@ -17,7 +17,7 @@ from src.utils.log_utils import set_log_file
 app = Flask(__name__)
 
 logger = logging.getLogger()
-logger.setLevel(level=logging.INFO)
+logger.setLevel(level=logging.WARNING)
 
 def response(code, **kwargs):
     """

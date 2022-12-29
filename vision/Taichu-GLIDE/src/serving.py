@@ -15,8 +15,9 @@ from src.alluxio.hw_obs import cube_bucket, obsClient
 from src.utils.log_utils import set_log_file
 
 app = Flask(__name__)
-logging.getLogger().setLevel(level=logging.INFO)
 
+logger = logging.getLogger()
+logger.setLevel(level=logging.INFO)
 
 def response(code, **kwargs):
     """
@@ -60,7 +61,7 @@ def predict():
 
         my_uuid = str(uuid.uuid1())
 
-        logging.warning("[predict][{}] start text:{}, pics_generated: {} ...".format(my_uuid, text, pics_generated))
+        logger.warning("[predict][{}] start text:{}, pics_generated: {} ...".format(my_uuid, text, pics_generated))
         msg = Diffusion().predict(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
 
         message = {
@@ -71,7 +72,7 @@ def predict():
 
         return response(200, **message)
     except Exception as e:
-        logging.exception(e)
+        logger.exception(e)
         message = {
             "status": 0,
             "message": "failed",
@@ -88,13 +89,13 @@ def test():
         req = request.json
         text = req.get('text', None)
 
-        logging.info("[test] start text:{} ...".format(text))
+        logger.info("[test] start text:{} ...".format(text))
 
         obs_upload_to = "server/text2image/diffusion_glide_mindspore/scripts/run_server_docker.sh"
 
         local_dir = "/home/server/scripts/run_server_docker.sh"
         # 文件上传到obs/minio
-        logging.warning("上传到obs/minio路径: {}".format(obs_upload_to))
+        logger.warning("上传到obs/minio路径: {}".format(obs_upload_to))
 
         headers = PutObjectHeader()
         headers.contentType = 'text/plain'
@@ -110,7 +111,7 @@ def test():
 
         return response(200, **message)
     except Exception as e:
-        logging.exception(e)
+        logger.exception(e)
         message = {
             "status": 0,
             "message": "failed",
@@ -122,14 +123,14 @@ def test():
 
 
 def print_dir(root_dir):
-    logging.warning("[print_dir] start : {} ...".format(root_dir))
+    logger.info("[print_dir] start : {} ...".format(root_dir))
     for parent, _, fileNames in os.walk(root_dir):
             for name in fileNames:
                 if name.startswith('.'):  # 去除隐藏文件
                     continue
                 else:
-                    logging.warning("{}, {}".format(parent, name))
-    logging.warning("[print_dir] end ...")
+                    logger.info("{}, {}".format(parent, name))
+    logger.info("[print_dir] end ...")
 
 
 if __name__ == '__main__':
@@ -155,10 +156,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO)
-    set_log_file(logger_obj=logging.getLogger(), filename=args.log_file)
+    # logging.basicConfig(level=logging.INFO)
+    set_log_file(logger_obj=logger, filename=args.log_file)
 
-    logging.warning(args)
+    logger.warning(args)
 
     Diffusion(args=args)
 

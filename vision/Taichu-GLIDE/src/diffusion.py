@@ -33,20 +33,23 @@ from threading import RLock
 # from src.alluxio.s3 import send_directory_to
 from src.alluxio.hw_obs import cube_bucket, obsClient
 
+logger = logging.getLogger()
+
+
 class Diffusion(object):
     single_lock = RLock()       # 上锁
     init_flag = False
 
     def __init__(self, args=None):
         if self.init_flag is False:
-            logging.warning("[Diffusion] init start. ")
-            logging.warning("[Diffusion] args: {}".format(args))
+            logger.warning("[Diffusion] init start. ")
+            logger.warning("[Diffusion] args: {}".format(args))
             self.init(args=args)
 
             # 最开始先进行一次预测
             self.predict(uuid="init", prompt="测试")
 
-            logging.warning("[Diffusion] init finish. ")
+            logger.warning("[Diffusion] init finish. ")
             self.init_flag = True
 
         return
@@ -61,9 +64,9 @@ class Diffusion(object):
     def load_ckpt(self, net, ckpt_file, model_type="base"):
         if not ckpt_file:
             return
-        logging.info(f"start loading ckpt:{ckpt_file}")
+        logger.info(f"start loading ckpt:{ckpt_file}")
         param_dict = load_checkpoint(ckpt_file)
-        # logging.info(f"[load_ckpt] param_dict: {param_dict}")
+        # logger.info(f"[load_ckpt] param_dict: {param_dict}")
         new_param_dict = {}
         for key, val in param_dict.items():
             keyL = key.split(".")
@@ -79,8 +82,8 @@ class Diffusion(object):
             new_param_dict[new_key] = val
         if param_dict:
             param_not_load = load_param_into_net(net, new_param_dict)
-            logging.info("param not load: {}".format(param_not_load))
-        logging.info(f"end loading ckpt:{ckpt_file}")
+            logger.info("param not load: {}".format(param_not_load))
+        logger.info(f"end loading ckpt:{ckpt_file}")
 
     def read_prompts_file(self, file):
         prompts = []
@@ -96,7 +99,7 @@ class Diffusion(object):
             for line in f:
                 caption = line.strip().split('\t')[1]
                 captions.append(caption)
-        logging.info(f"the num of all random captions: {len(captions)}")
+        logger.info(f"the num of all random captions: {len(captions)}")
         return captions
 
     @staticmethod
@@ -136,7 +139,7 @@ class Diffusion(object):
         self.input_shape = (self.pics_generated * 2, 3, self.options["image_size"], self.options["image_size"])
         self.up_shape = (self.pics_generated, 3, options_up["image_size"], options_up["image_size"])
 
-        logging.info("Initializing models...")
+        logger.info("Initializing models...")
         # base model for 64*64 generative
         self.diffusion_model = init_diffusion_model(options=self.options,
                                                guidance_scale=guidance_scale,
@@ -152,7 +155,7 @@ class Diffusion(object):
         self.srgan = SRGAN(4, ckpt_path_srgan)
 
     def predict(self, uuid, prompt, pics_generated=1):
-        logging.info("read prompts_file...")
+        logger.info("[predict] start ...")
 
         output_dir = os.path.join(self.output_path, uuid)
         os.makedirs(name=output_dir, exist_ok=True)
@@ -197,7 +200,7 @@ class Diffusion(object):
         save_images(samples, upx16_image_path)
 
         # 文件上传到obs/minio
-        logging.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
+        logger.warning("图片生成成功，开始上传到obs/minio路径: {}".format(obs_upload_to))
 
         obs_ori_image_path = obs_upload_to + prompt + ".jpg"
         obs_upx4_image_path = obs_upload_to + prompt + "_up256.jpg"

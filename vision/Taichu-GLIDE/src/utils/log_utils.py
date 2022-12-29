@@ -83,11 +83,11 @@ def set_log_file(logger_obj: logging.Logger, filename: str = None, backup_count:
     # 文件格式
     formatter = logging.Formatter("%(asctime)s %(levelname)s %(pathname)s:%(lineno)d - [PID:%(process)d] %(message)s")
 
-    # 写到控制台
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
-    console_handler.setLevel(logger_obj.level)
-    logger_obj.addHandler(console_handler)
+    # # 写到控制台
+    # console_handler = logging.StreamHandler()
+    # console_handler.setFormatter(formatter)
+    # console_handler.setLevel(logger_obj.level)
+    # logger_obj.addHandler(console_handler)
 
     # 写到文件
     if filename:

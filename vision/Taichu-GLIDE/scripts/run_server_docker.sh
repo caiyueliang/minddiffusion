@@ -15,6 +15,9 @@
 # limitations under the License.
 # ============================================================================
 export STORAGE_MEDIA="OBS"
+export GLOG_v=3
+export ASCEND_GLOBAL_LOG_LEVEL=3
+export ASCEND_SLOG_PRINT_TO_STDOUT=0
 
 # filebeat日志采集器
 mkdir filebeat

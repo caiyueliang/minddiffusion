@@ -5,13 +5,12 @@ import logging
 import json
 import uuid
 from flask import Flask, request, jsonify
-from flask import current_app, make_response, send_file
-from flask.globals import session
+from flask import make_response
 
 sys.path.append("./")
 
 from src.wukong import WuKong
-from src.log_utils import set_log_file
+from src.utils.log_utils import set_log_file
 
 
 app = Flask(__name__)

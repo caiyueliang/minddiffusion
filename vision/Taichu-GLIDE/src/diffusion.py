@@ -49,6 +49,8 @@ class Diffusion(object):
             # 创建线程池
             self.thread_executor = ThreadPoolExecutor(max_workers=args.thread_pool_size)
 
+            self.download_model_from_obs(args=args)
+
             self.init(args=args)
 
             # 最开始先进行一次预测
@@ -65,6 +67,23 @@ class Diffusion(object):
                 Diffusion._instance = object.__new__(cls)
 
         return Diffusion._instance
+
+    def put_file_to_obs(self, bucket_name, obs_path, local_path):
+        headers = PutObjectHeader()
+        headers.contentType = 'text/plain'
+        obsClient.putFile(bucketName=bucket_name, objectKey=obs_path, file_path=local_path,
+                          metadata={}, headers=headers)
+        http_path = "https://{}.obs.cn-central-221.ovaijisuan.com/{}".format(bucket_name, obs_path)
+        logger.warning("[put_file_to_obs] http_path: {}".format(http_path))
+        return http_path
+
+    def get_object_from_obs(self, bucket_name, obs_path, local_path):
+        obsClient.getObject(bucketName=bucket_name, objectKey=obs_path, downloadPath=local_path)
+    def download_model_from_obs(self, args):
+        if args.download_model is True:
+            logger.warning("[download_model_from_obs] download model from: {}".format(args.model_obs_path))
+        else:
+            logger.warning("[download_model_from_obs] do not download model from obs ...")
 
     def load_ckpt(self, net, ckpt_file, model_type="base"):
         if not ckpt_file:
@@ -225,11 +244,11 @@ class Diffusion(object):
         obs_upx4_image_path = obs_upload_to + prompt + "_up256.jpg"
         obs_upx16_image_path = obs_upload_to + prompt + "_up1024.jpg"
 
-        headers = PutObjectHeader()
-        headers.contentType = 'text/plain'
-        obsClient.putFile(cube_bucket, obs_ori_image_path, ori_image_path, metadata={}, headers=headers)
-        obsClient.putFile(cube_bucket, obs_upx4_image_path, upx4_image_path, metadata={}, headers=headers)
-        obsClient.putFile(cube_bucket, obs_upx16_image_path, upx16_image_path, metadata={}, headers=headers)
+        # headers = PutObjectHeader()
+        # headers.contentType = 'text/plain'
+        # obsClient.putFile(cube_bucket, obs_ori_image_path, ori_image_path, metadata={}, headers=headers)
+        # obsClient.putFile(cube_bucket, obs_upx4_image_path, upx4_image_path, metadata={}, headers=headers)
+        # obsClient.putFile(cube_bucket, obs_upx16_image_path, upx16_image_path, metadata={}, headers=headers)
 
         if self.pics_generated > 1:
             result = {"infer_result": "success", "images": []}
@@ -244,27 +263,32 @@ class Diffusion(object):
                 local_image = ori_image_dict[key]
                 image_name = os.path.basename(local_image)
                 obs_image_path = os.path.join(obs_upload_to, image_name)
-                obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
-                sub_image["64*64"] = "https://publish-data.obs.cn-central-221.ovaijisuan.com/{}".format(obs_image_path)
+                # obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
+                http_path = self.put_file_to_obs(
+                    bucket_name=cube_bucket, obs_path=obs_image_path, local_path=local_image)
+                sub_image["64*64"] = http_path
 
                 local_image = upx4_image_dict[key]
                 image_name = os.path.basename(local_image)
                 obs_image_path = os.path.join(obs_upload_to, image_name)
-                obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
-                sub_image["256*256"] = "https://publish-data.obs.cn-central-221.ovaijisuan.com/{}".format(obs_image_path)
+                # obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
+                http_path = self.put_file_to_obs(
+                    bucket_name=cube_bucket, obs_path=obs_image_path, local_path=local_image)
+                sub_image["256*256"] = http_path
 
                 local_image = upx16_image_dict[key]
                 image_name = os.path.basename(local_image)
                 obs_image_path = os.path.join(obs_upload_to, image_name)
-                obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
-                sub_image["1024*1024"] = "https://publish-data.obs.cn-central-221.ovaijisuan.com/{}".format(obs_image_path)
+                # obsClient.putFile(cube_bucket, obs_image_path, local_image, metadata={}, headers=headers)
+                http_path = self.put_file_to_obs(bucket_name=cube_bucket, obs_path=obs_image_path, local_path=local_image)
+                sub_image["1024*1024"] = http_path
 
                 result["images"].append(sub_image)
         else:
             result = {"infer_result": "success",
                       "image_list": [{
-                          "64*64": obs_ori_image_path,
-                          "256*256": obs_upx4_image_path,
-                          "1024*1024": obs_upx16_image_path
+                          "64*64": self.put_file_to_obs(bucket_name=cube_bucket, obs_path=obs_ori_image_path, local_path=ori_image_path),
+                          "256*256": self.put_file_to_obs(bucket_name=cube_bucket, obs_path=obs_upx4_image_path, local_path=upx4_image_path),
+                          "1024*1024": self.put_file_to_obs(bucket_name=cube_bucket, obs_path=obs_upx16_image_path, local_path=upx16_image_path)
                       }]}
         return result

@@ -156,6 +156,9 @@ if __name__ == '__main__':
     parser.add_argument('--log_file', default="./log/server.log", type=str, help='log dir')
     parser.add_argument('--thread_pool_size', default=1, type=int, help='thread pool size')
 
+    parser.add_argument('--download_model', default=False, type=bool, help='download model flag')
+    parser.add_argument('--model_obs_path', default="", type=str, help='download model obs path')
+
     args = parser.parse_args()
 
     # logging.basicConfig(level=logging.INFO)

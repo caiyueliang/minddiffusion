@@ -11,5 +11,5 @@ def print_dir(root_dir):
                 if name.startswith('.'):  # 去除隐藏文件
                     continue
                 else:
-                    logger.info("{}, {}".format(parent, name))
+                    logger.warning("{}, {}".format(parent, name))
     logger.info("[print_dir] end ...")

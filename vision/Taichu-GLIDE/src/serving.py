@@ -13,6 +13,7 @@ from obs import PutObjectHeader
 from src.diffusion import Diffusion
 from src.alluxio.hw_obs import cube_bucket, obsClient
 from src.utils.log_utils import set_log_file
+from src.utils.utils import print_dir
 
 app = Flask(__name__)
 
@@ -123,17 +124,6 @@ def test():
         return response(500, **message)
 
 
-def print_dir(root_dir):
-    logger.info("[print_dir] start : {} ...".format(root_dir))
-    for parent, _, fileNames in os.walk(root_dir):
-            for name in fileNames:
-                if name.startswith('.'):  # 去除隐藏文件
-                    continue
-                else:
-                    logger.info("{}, {}".format(parent, name))
-    logger.info("[print_dir] end ...")
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--is_chinese", default=True, type=bool, help="chinese or not")
@@ -156,13 +146,12 @@ if __name__ == '__main__':
     parser.add_argument('--log_file', default="./log/server.log", type=str, help='log dir')
     parser.add_argument('--thread_pool_size', default=1, type=int, help='thread pool size')
 
-    parser.add_argument('--download_model', default=False, type=bool, help='download model flag')
-    parser.add_argument('--model_obs_path', default="", type=str, help='download model obs path')
-    parser.add_argument('--model_bucket_name', default="", type=str, help='download model bucket name')
+    # parser.add_argument('--download_model', default=False, type=bool, help='download model flag')
+    # parser.add_argument('--model_obs_path', default="", type=str, help='download model obs path')
+    parser.add_argument('--model_name', default="glide_gen.ckpt", type=str, help='download model name')
 
     args = parser.parse_args()
 
-    # logging.basicConfig(level=logging.INFO)
     set_log_file(logger_obj=logger, filename=args.log_file)
 
     logger.warning(args)

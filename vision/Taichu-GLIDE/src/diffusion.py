@@ -33,6 +33,7 @@ from threading import RLock
 
 # from src.alluxio.s3 import send_directory_to
 from src.alluxio.hw_obs import cube_bucket, obsClient
+from src.utils.utils import print_dir
 
 logger = logging.getLogger()
 
@@ -81,14 +82,30 @@ class Diffusion(object):
         obsClient.getObject(bucketName=bucket_name, objectKey=obs_path, downloadPath=local_path)
 
     def download_model_from_obs(self, args):
-        if args.download_model is True:
-            logger.warning("[download_model_from_obs] download model from: {}".format(args.model_obs_path))
-            self.get_object_from_obs(bucket_name=args.model_bucket_name,
-                                     obs_path=args.model_obs_path,
-                                     local_path=args.ckpt_path)
-            logger.warning("[download_model_from_obs] download model {} success.".format(args.model_obs_path))
+        model_obs_path = os.getenv('MODEL_OBS_PATH', None)
+
+        if model_obs_path is None or model_obs_path == '':
+            logger.warning("[download_model_from_obs] do not download model. model_obs_path: {}".format(model_obs_path))
         else:
-            logger.warning("[download_model_from_obs] do not download model from obs ...")
+            logger.warning("[download_model_from_obs] download model from: {}".format(model_obs_path))
+
+            bucket_name = model_obs_path.split("/")[2]
+            obs_path = '/'.join(model_obs_path.split("/")[3:]) + args.model_name
+            local_path = os.path.join(args.ckpt_path, args.model_name)
+            logger.warning("[download_model_from_obs] bucket_name: {}, obs_path: {}, local_path: {}".format(
+                bucket_name, obs_path, local_path))
+
+            print_dir(args.ckpt_path)
+            logger.warning("[download_model_from_obs] remove local old model: {}".format(local_path))
+            os.remove(local_path)
+            print_dir(args.ckpt_path)
+
+            self.get_object_from_obs(bucket_name=bucket_name,
+                                     obs_path=obs_path,
+                                     local_path=local_path)
+
+            print_dir(args.ckpt_path)
+            logger.warning("[download_model_from_obs] download model {} success.".format(model_obs_path))
 
     def load_ckpt(self, net, ckpt_file, model_type="base"):
         if not ckpt_file:

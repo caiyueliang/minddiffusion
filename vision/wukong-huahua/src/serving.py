@@ -74,8 +74,10 @@ def predict():
             else:
                 prompt = text
 
-            msg = WuKong().predict(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
-                                   scale=scale, ddim_steps=ddim_steps)
+            # msg = WuKong().predict(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
+            #                        scale=scale, ddim_steps=ddim_steps)
+            msg = WuKong().predict_thread(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
+                                          scale=scale, ddim_steps=ddim_steps)
 
             message = {
                 "status": 0,
@@ -229,6 +231,8 @@ if __name__ == '__main__':
         default="autocast"
     )
     parser.add_argument('--log_file', default="./log/server.log", type=str, help='log dir')
+    parser.add_argument('--thread_pool_size', default=1, type=int, help='thread pool size')
+
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)

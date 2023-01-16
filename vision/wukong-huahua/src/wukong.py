@@ -16,6 +16,7 @@ import numpy as np
 import mindspore as ms
 from itertools import islice
 from omegaconf import OmegaConf
+from concurrent.futures import ThreadPoolExecutor, wait, ALL_COMPLETED, as_completed
 
 from ldm.util import instantiate_from_config
 from ldm.models.diffusion.plms import PLMSSampler
@@ -31,15 +32,21 @@ from threading import RLock
 from src.alluxio.hw_obs import cube_bucket, obsClient
 
 
+logger = logging.getLogger()
+
+
 class WuKong(object):
     single_lock = RLock()       # 上锁
     init_flag = False
 
     def __init__(self, args=None):
         if self.init_flag is False:
-            logging.warning("[WuKong] init start. ")
-            logging.warning("[WuKong] args: {}".format(args))
+            logger.warning("[WuKong] init start. ")
+            logger.warning("[WuKong] args: {}".format(args))
             self.opt = args
+
+            # 创建线程池
+            self.thread_executor = ThreadPoolExecutor(max_workers=args.thread_pool_size)
 
             self.init(opt=args)
 
@@ -50,7 +57,7 @@ class WuKong(object):
             # self.predict(uuid="init", prompt="峡谷", n_iter=1, n_samples=2, H=1024, W=768, scale=7.5, ddim_steps=50)
             # self.predict(uuid="init", prompt="山谷", n_iter=1, n_samples=2, H=768, W=1024, scale=7.5, ddim_steps=50)
 
-            logging.warning("[WuKong] init finish. ")
+            logger.warning("[WuKong] init finish. ")
             self.init_flag = True
 
         return
@@ -87,15 +94,15 @@ class WuKong(object):
 
     @staticmethod
     def load_model_from_config(config, ckpt, verbose=False):
-        logging.warning(f"Loading model from {ckpt}")
+        logger.warning(f"Loading model from {ckpt}")
         model = instantiate_from_config(config.model)
         if os.path.exists(ckpt):
             param_dict = ms.load_checkpoint(ckpt)
             if param_dict:
                 param_not_load = ms.load_param_into_net(model, param_dict)
-                logging.warning("param not load: {}".format(param_not_load))
+                logger.warning("param not load: {}".format(param_not_load))
         else:
-            logging.warning(f"{ckpt} not exist:")
+            logger.warning(f"{ckpt} not exist:")
 
         return model
 
@@ -171,8 +178,22 @@ class WuKong(object):
         # base_count = len(os.listdir(sample_path))
         # grid_count = len(os.listdir(outpath)) - 1
 
+    def predict_thread(self, uuid, prompt, n_iter=1, n_samples=4, H=512, W=512, scale=7.5, ddim_steps=50):
+        all_task = list()
+
+        logger.warning("[predict_thread] uuid: {} start ...".format(uuid))
+        all_task.append(self.thread_executor.submit(self.predict, uuid, prompt, n_iter, n_samples, H, W, scale, ddim_steps))
+        logger.warning("[predict_thread] uuid: {} submit to  ThreadPoolExecutor ...".format(uuid))
+
+        wait(all_task, return_when=ALL_COMPLETED)
+
+        for task in as_completed(all_task):
+            result = task.result()
+            logger.warning("[predict_thread] uuid: {} end ...".format(uuid))
+            return result
+
     def predict(self, uuid, prompt, n_iter=1, n_samples=4, H=512, W=512, scale=7.5, ddim_steps=50):
-        logging.info("[predict] start ...")
+        logger.info("[predict] start ...")
 
         output_dir = os.path.join(self.output_path, uuid)
         os.makedirs(name=output_dir, exist_ok=True)
@@ -196,7 +217,7 @@ class WuKong(object):
         all_samples = list()
         for n in range(n_iter):
             for prompts in data:
-                logging.info("n: {}, prompts: {} ...".format(n, prompts))
+                logger.info("n: {}, prompts: {} ...".format(n, prompts))
                 uc = None
                 if scale != 1.0:
                     uc = self.model.get_learned_conditioning(batch_size * [""])
@@ -235,7 +256,7 @@ class WuKong(object):
 
                         obs_image = "https://publish-data.obs.cn-central-221.ovaijisuan.com/{}".format(obs_image_path)
                         result["images"].append(obs_image)
-                        logging.info("image_path: {}".format(obs_image))
+                        logger.info("image_path: {}".format(obs_image))
 
                 if not self.opt.skip_grid:
                     all_samples.append(x_samples_ddim_numpy)

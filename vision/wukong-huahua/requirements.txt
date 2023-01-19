@@ -8,3 +8,6 @@ pandas
 imagesize
 toolz
 pillow
+boto==2.49.0
+esdk-obs-python==3.21.4
+flask

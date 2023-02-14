@@ -30,6 +30,7 @@ from threading import RLock
 
 # from src.alluxio.s3 import send_directory_to
 from src.alluxio.hw_obs import cube_bucket, obsClient
+from src.utils.utils import print_dir
 
 
 logger = logging.getLogger()
@@ -47,6 +48,8 @@ class WuKong(object):
 
             # 创建线程池
             self.thread_executor = ThreadPoolExecutor(max_workers=args.thread_pool_size)
+
+            self.download_model_from_obs(args=args)
 
             self.init(opt=args)
 
@@ -68,6 +71,44 @@ class WuKong(object):
                 WuKong._instance = object.__new__(cls)
 
         return WuKong._instance
+
+    def put_file_to_obs(self, bucket_name, obs_path, local_path):
+        headers = PutObjectHeader()
+        headers.contentType = 'text/plain'
+        obsClient.putFile(bucketName=bucket_name, objectKey=obs_path, file_path=local_path,
+                          metadata={}, headers=headers)
+        http_path = "https://{}.obs.cn-central-221.ovaijisuan.com/{}".format(bucket_name, obs_path)
+        logger.warning("[put_file_to_obs] http_path: {}".format(http_path))
+        return http_path
+
+    def get_object_from_obs(self, bucket_name, obs_path, local_path):
+        obsClient.getObject(bucketName=bucket_name, objectKey=obs_path, downloadPath=local_path)
+
+    def download_model_from_obs(self, args):
+        model_obs_path = os.getenv('MODEL_OBS_PATH', None)
+
+        if model_obs_path is None or model_obs_path == '':
+            logger.warning("[download_model_from_obs] do not download model. model_obs_path: {}".format(model_obs_path))
+        else:
+            logger.warning("[download_model_from_obs] download model from: {}".format(model_obs_path))
+
+            bucket_name = model_obs_path.split("/")[2]
+            obs_path = '/'.join(model_obs_path.split("/")[3:]) + args.model_name
+            local_path = os.path.join(args.ckpt_path, args.model_name)
+            logger.warning("[download_model_from_obs] bucket_name: {}, obs_path: {}, local_path: {}".format(
+                bucket_name, obs_path, local_path))
+
+            print_dir(args.ckpt_path)
+            logger.warning("[download_model_from_obs] remove local old model: {}".format(local_path))
+            os.remove(local_path)
+            print_dir(args.ckpt_path)
+
+            self.get_object_from_obs(bucket_name=bucket_name,
+                                     obs_path=obs_path,
+                                     local_path=local_path)
+
+            print_dir(args.ckpt_path)
+            logger.warning("[download_model_from_obs] download model {} success.".format(model_obs_path))
 
     @staticmethod
     def seed_everything(seed):

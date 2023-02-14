@@ -11,6 +11,7 @@ sys.path.append("./")
 
 from src.wukong import WuKong
 from src.utils.log_utils import set_log_file
+from src.utils.utils import print_dir
 
 
 app = Flask(__name__)
@@ -104,15 +105,15 @@ def predict():
         return response(500, **message)
 
 
-def print_dir(root_dir):
-    logging.warning("[print_dir] start : {} ...".format(root_dir))
-    for parent, _, fileNames in os.walk(root_dir):
-            for name in fileNames:
-                if name.startswith('.'):  # 去除隐藏文件
-                    continue
-                else:
-                    logging.warning("{}, {}".format(parent, name))
-    logging.warning("[print_dir] end ...")
+# def print_dir(root_dir):
+#     logging.warning("[print_dir] start : {} ...".format(root_dir))
+#     for parent, _, fileNames in os.walk(root_dir):
+#             for name in fileNames:
+#                 if name.startswith('.'):  # 去除隐藏文件
+#                     continue
+#                 else:
+#                     logging.warning("{}, {}".format(parent, name))
+#     logging.warning("[print_dir] end ...")
 
 
 if __name__ == '__main__':
@@ -232,6 +233,8 @@ if __name__ == '__main__':
     )
     parser.add_argument('--log_file', default="./log/server.log", type=str, help='log dir')
     parser.add_argument('--thread_pool_size', default=1, type=int, help='thread pool size')
+    parser.add_argument("--ckpt_path", default="./pretraind_models/", type=str, help="ckpt init path")
+    parser.add_argument('--model_name', default="wukong-huahua-ms.ckpt", type=str, help='download model name')
 
     args = parser.parse_args()
 

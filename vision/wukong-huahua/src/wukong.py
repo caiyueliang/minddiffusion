@@ -51,10 +51,12 @@ class WuKong(object):
             # 创建线程池
             self.thread_executor = ThreadPoolExecutor(max_workers=args.thread_pool_size)
 
-            self.download_model_from_obs(args=args)
+            # self.download_model_from_obs(args=args)
+            self.download_model_from_obs(loca_path=args.ckpt_path, file_name=args.model_name)
 
             # 获取train_info
-            self.get_train_info()
+            self.download_model_from_obs(loca_path=args.ckpt_path, file_name="train_info.json")
+            self.get_train_info(loca_path=args.ckpt_path, file_name="train_info.json")
 
             self.init(opt=args)
 
@@ -77,27 +79,21 @@ class WuKong(object):
 
         return WuKong._instance
 
-    def get_train_info(self):
-        model_obs_path = os.getenv('MODEL_OBS_PATH', None)
+    def get_train_info(self, loca_path, file_name):
+        try:
+            info_file = os.path.join(loca_path, file_name)
 
-        if model_obs_path is None or model_obs_path == '':
-            logger.warning("[get_train_info] do not download model. model_obs_path: {}".format(model_obs_path))
-        else:
-            logger.warning("[get_train_info] download model from: {}".format(model_obs_path))
+            info_dict = load_json(file_path=info_file)
+            logger.warning("[get_train_info] info_file: {}, info_dict: {}, type: {}".format(
+                info_file, info_dict, type(info_dict)))
 
-            try:
-                info_file = os.path.join(model_obs_path, "train_info.json")
-                info_dict = load_json(file_path=info_file)
-                logger.warning("[get_train_info] info_file: {}, info_dict: {}, type: {}".format(
-                    info_file, info_dict, type(info_dict)))
+            if "class_word" in info_dict.keys():
+                self.class_name = info_dict["class_word"]
+            else:
+                logger.warning("[get_train_info] info_dict: {}, not key: class_word".format(info_dict))
 
-                if "class_word" in info_dict.keys():
-                    self.class_name = info_dict["class_word"]
-                else:
-                    logger.warning("[get_train_info] info_dict: {}, not key: class_word".format(info_dict))
-
-            except Exception as e:
-                logger.exception(e)
+        except Exception as e:
+            logger.exception(e)
 
     def put_file_to_obs(self, bucket_name, obs_path, local_path):
         headers = PutObjectHeader()
@@ -111,31 +107,60 @@ class WuKong(object):
     def get_object_from_obs(self, bucket_name, obs_path, local_path):
         obsClient.getObject(bucketName=bucket_name, objectKey=obs_path, downloadPath=local_path)
 
-    def download_model_from_obs(self, args):
-        model_obs_path = os.getenv('MODEL_OBS_PATH', None)
+    def download_model_from_obs(self, loca_path, file_name):
+        try:
+            model_obs_path = os.getenv('MODEL_OBS_PATH', None)
 
-        if model_obs_path is None or model_obs_path == '':
-            logger.warning("[download_model_from_obs] do not download model. model_obs_path: {}".format(model_obs_path))
-        else:
-            logger.warning("[download_model_from_obs] download model from: {}".format(model_obs_path))
+            if model_obs_path is None or model_obs_path == '':
+                logger.warning("[download_model_from_obs] do not download model. model_obs_path: {}".format(model_obs_path))
+            else:
+                logger.warning("[download_model_from_obs] download model from: {}".format(model_obs_path))
 
-            bucket_name = model_obs_path.split("/")[2]
-            obs_path = '/'.join(model_obs_path.split("/")[3:]) + args.model_name
-            local_path = os.path.join(args.ckpt_path, args.model_name)
-            logger.warning("[download_model_from_obs] bucket_name: {}, obs_path: {}, local_path: {}".format(
-                bucket_name, obs_path, local_path))
+                bucket_name = model_obs_path.split("/")[2]
+                obs_path = '/'.join(model_obs_path.split("/")[3:]) + file_name
+                local_path = os.path.join(loca_path, file_name)
+                logger.warning("[download_model_from_obs] bucket_name: {}, obs_path: {}, local_path: {}".format(
+                    bucket_name, obs_path, local_path))
 
-            print_dir(args.ckpt_path)
-            logger.warning("[download_model_from_obs] remove local old model: {}".format(local_path))
-            os.remove(local_path)
-            print_dir(args.ckpt_path)
+                print_dir(loca_path)
+                logger.warning("[download_model_from_obs] remove local old model: {}".format(local_path))
+                os.remove(local_path)
+                print_dir(loca_path)
 
-            self.get_object_from_obs(bucket_name=bucket_name,
-                                     obs_path=obs_path,
-                                     local_path=local_path)
+                self.get_object_from_obs(bucket_name=bucket_name,
+                                         obs_path=obs_path,
+                                         local_path=local_path)
 
-            print_dir(args.ckpt_path)
-            logger.warning("[download_model_from_obs] download model {} success.".format(model_obs_path))
+                print_dir(loca_path)
+                logger.warning("[download_model_from_obs] download model {} success.".format(model_obs_path))
+        except Exception as e:
+            logger.exception(e)
+
+    # def download_model_from_obs(self, args):
+    #     model_obs_path = os.getenv('MODEL_OBS_PATH', None)
+    #
+    #     if model_obs_path is None or model_obs_path == '':
+    #         logger.warning("[download_model_from_obs] do not download model. model_obs_path: {}".format(model_obs_path))
+    #     else:
+    #         logger.warning("[download_model_from_obs] download model from: {}".format(model_obs_path))
+    #
+    #         bucket_name = model_obs_path.split("/")[2]
+    #         obs_path = '/'.join(model_obs_path.split("/")[3:]) + args.model_name
+    #         local_path = os.path.join(args.ckpt_path, args.model_name)
+    #         logger.warning("[download_model_from_obs] bucket_name: {}, obs_path: {}, local_path: {}".format(
+    #             bucket_name, obs_path, local_path))
+    #
+    #         print_dir(args.ckpt_path)
+    #         logger.warning("[download_model_from_obs] remove local old model: {}".format(local_path))
+    #         os.remove(local_path)
+    #         print_dir(args.ckpt_path)
+    #
+    #         self.get_object_from_obs(bucket_name=bucket_name,
+    #                                  obs_path=obs_path,
+    #                                  local_path=local_path)
+    #
+    #         print_dir(args.ckpt_path)
+    #         logger.warning("[download_model_from_obs] download model {} success.".format(model_obs_path))
 
     @staticmethod
     def seed_everything(seed):

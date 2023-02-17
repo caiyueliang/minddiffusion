@@ -56,6 +56,7 @@ def predict():
         req = request.json
         text = req.get('text', None)
         style = req.get('style', None)
+        type = req.get('type', None)           # custom（个性化），normal（通用）
         n_samples = req.get('n_samples', 1)
         n_iter = req.get('n_iter', 1)
         h = req.get('h', 512)
@@ -70,6 +71,10 @@ def predict():
             my_uuid, text, style, n_iter, n_samples, scale, ddim_steps, h, w))
 
         if text is not None:
+            if type is not None:
+                if type == "custom":
+                    text = "α " + text
+
             if style is not None:
                 prompt = text + " " + style
             else:

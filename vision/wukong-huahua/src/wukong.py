@@ -55,7 +55,7 @@ class WuKong(object):
             self.download_model_from_obs(loca_path=args.ckpt_path, file_name=args.model_name)
 
             # 获取train_info
-            self.download_model_from_obs(loca_path=args.ckpt_path, file_name="train_info.json")
+            self.download_file_from_obs(loca_path=args.ckpt_path, file_name="train_info.json")
             self.get_train_info(loca_path=args.ckpt_path, file_name="train_info.json")
 
             self.init(opt=args)
@@ -139,6 +139,41 @@ class WuKong(object):
 
                 print_dir(loca_path)
                 logger.warning("[download_model_from_obs] download model {} success.".format(model_obs_path))
+        except Exception as e:
+            logger.exception(e)
+
+    def download_file_from_obs(self, loca_path, file_name):
+        try:
+            model_obs_path = os.getenv('MODEL_OBS_PATH', None)
+
+            if model_obs_path is None or model_obs_path == '':
+                logger.warning("[download_file_from_obs] do not download model. model_obs_path: {}".format(model_obs_path))
+            else:
+                logger.warning("[download_file_from_obs] download model from: {}".format(model_obs_path))
+
+                bucket_name = model_obs_path.split("/")[2]
+                # obs_path = '/'.join(model_obs_path.split("/")[3:]) + file_name
+                obs_path = '/'.join(model_obs_path.split("/")[3:])
+                if obs_path.endswith("/"):
+                    obs_path = obs_path + file_name
+                else:
+                    obs_path = obs_path + "/" + file_name
+
+                local_path = os.path.join(loca_path, file_name)
+                logger.warning("[download_file_from_obs] bucket_name: {}, obs_path: {}, local_path: {}".format(
+                    bucket_name, obs_path, local_path))
+
+                # print_dir(loca_path)
+                # logger.warning("[download_file_from_obs] remove local old model: {}".format(local_path))
+                # os.remove(local_path)
+                # print_dir(loca_path)
+
+                self.get_object_from_obs(bucket_name=bucket_name,
+                                         obs_path=obs_path,
+                                         local_path=local_path)
+
+                print_dir(loca_path)
+                logger.warning("[download_file_from_obs] download model {} success.".format(model_obs_path))
         except Exception as e:
             logger.exception(e)
 

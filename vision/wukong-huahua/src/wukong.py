@@ -31,6 +31,7 @@ from threading import RLock
 # from src.alluxio.s3 import send_directory_to
 from src.alluxio.hw_obs import cube_bucket, obsClient
 from src.utils.utils import print_dir
+from src.utils.json_utils import load_json
 
 
 logger = logging.getLogger()
@@ -45,16 +46,20 @@ class WuKong(object):
             logger.warning("[WuKong] init start. ")
             logger.warning("[WuKong] args: {}".format(args))
             self.opt = args
+            self.class_name = None
 
             # 创建线程池
             self.thread_executor = ThreadPoolExecutor(max_workers=args.thread_pool_size)
 
             self.download_model_from_obs(args=args)
 
+            # 获取train_info
+            self.get_train_info()
+
             self.init(opt=args)
 
             # 最开始先进行一次预测
-            self.predict(uuid="init", prompt="星空", n_iter=1, n_samples=4, H=512, W=512, scale=7.5, ddim_steps=50)
+            self.predict(uuid="init", prompt="星空", n_iter=1, n_samples=2, H=512, W=512, scale=7.5, ddim_steps=50)
             # self.predict(uuid="init", prompt="北极", n_iter=1, n_samples=4, H=1024, W=576, scale=7.5, ddim_steps=50)
             # self.predict(uuid="init", prompt="公路", n_iter=1, n_samples=4, H=576, W=1024, scale=7.5, ddim_steps=50)
             # self.predict(uuid="init", prompt="峡谷", n_iter=1, n_samples=2, H=1024, W=768, scale=7.5, ddim_steps=50)
@@ -71,6 +76,28 @@ class WuKong(object):
                 WuKong._instance = object.__new__(cls)
 
         return WuKong._instance
+
+    def get_train_info(self):
+        model_obs_path = os.getenv('MODEL_OBS_PATH', None)
+
+        if model_obs_path is None or model_obs_path == '':
+            logger.warning("[get_train_info] do not download model. model_obs_path: {}".format(model_obs_path))
+        else:
+            logger.warning("[get_train_info] download model from: {}".format(model_obs_path))
+
+            try:
+                info_file = os.path.join(model_obs_path, "train_info.json")
+                info_dict = load_json(file_path=info_file)
+                logger.warning("[get_train_info] info_file: {}, info_dict: {}, type: {}".format(
+                    info_file, info_dict, type(info_dict)))
+
+                if "class_word" in info_dict.keys():
+                    self.class_name = info_dict["class_word"]
+                else:
+                    logger.warning("[get_train_info] info_dict: {}, not key: class_word".format(info_dict))
+
+            except Exception as e:
+                logger.exception(e)
 
     def put_file_to_obs(self, bucket_name, obs_path, local_path):
         headers = PutObjectHeader()
@@ -244,6 +271,12 @@ class WuKong(object):
         obs_upload_to = "server/text2image/diffusion_wukong_mindspore/{}/".format(uuid)
 
         batch_size = n_samples
+
+        if self.class_name is not None:
+            if "α" in prompt:
+                prompt = prompt.replace("α", "α{}".format(self.class_name))
+            else:
+                prompt = "{} {}".format(self.class_name, prompt)
 
         # prompt = opt.prompt
         # assert prompt is not None

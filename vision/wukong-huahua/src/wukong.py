@@ -117,7 +117,7 @@ class WuKong(object):
                 logger.warning("[download_model_from_obs] download model from: {}".format(model_obs_path))
 
                 bucket_name = model_obs_path.split("/")[2]
-                obs_path = '/'.join(model_obs_path.split("/")[3:]) + file_name
+                obs_path = '/'.join(model_obs_path.split("/")[3:]) + "/" + file_name
                 local_path = os.path.join(loca_path, file_name)
                 logger.warning("[download_model_from_obs] bucket_name: {}, obs_path: {}, local_path: {}".format(
                     bucket_name, obs_path, local_path))

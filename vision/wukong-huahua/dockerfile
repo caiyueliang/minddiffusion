@@ -1,4 +1,4 @@
-FROM swr.cn-central-221.ovaijisuan.com/modelarts-image_zkyzdhs/mindspore-1.9.0-text2image:v2
+FROM swr.cn-central-221.ovaijisuan.com/wair/mindspore-1.9.0-text2image:v2
 
 # USER root
 

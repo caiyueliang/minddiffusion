@@ -55,8 +55,8 @@ class Diffusion(object):
             self.init(args=args)
 
             # 最开始先进行一次预测
-            # self.predict(uuid="init", prompt="测试")
-            self.predict_thread(uuid="init", prompt="测试")
+            self.predict(uuid="init", prompt="测试")
+            # self.predict_thread(uuid="init", prompt="测试")
 
             logger.warning("[Diffusion] init finish. ")
             self.init_flag = True

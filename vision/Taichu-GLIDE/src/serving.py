@@ -63,8 +63,8 @@ def predict():
         my_uuid = str(uuid.uuid1())
 
         logger.warning("[predict][{}] start text:{}, pics_generated: {} ...".format(my_uuid, text, pics_generated))
-        # msg = Diffusion().predict(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
-        msg = Diffusion().predict_thread(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
+        msg = Diffusion().predict(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
+        # msg = Diffusion().predict_thread(uuid=my_uuid, prompt=text, pics_generated=pics_generated)
 
         message = {
             "status": 0,

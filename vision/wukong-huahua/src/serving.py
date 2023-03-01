@@ -80,10 +80,10 @@ def predict():
             else:
                 prompt = text
 
-            # msg = WuKong().predict(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
-            #                        scale=scale, ddim_steps=ddim_steps)
-            msg = WuKong().predict_thread(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
-                                          scale=scale, ddim_steps=ddim_steps)
+            msg = WuKong().predict(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
+                                   scale=scale, ddim_steps=ddim_steps)
+            # msg = WuKong().predict_thread(uuid=my_uuid, prompt=prompt, n_iter=n_iter, n_samples=n_samples, H=h, W=w,
+            #                               scale=scale, ddim_steps=ddim_steps)
 
             message = {
                 "status": 0,

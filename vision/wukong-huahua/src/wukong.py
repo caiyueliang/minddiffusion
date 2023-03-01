@@ -61,7 +61,8 @@ class WuKong(object):
             self.init(opt=args)
 
             # 最开始先进行一次预测
-            self.predict_thread(uuid="init", prompt="星空", n_iter=1, n_samples=2, H=512, W=512, scale=7.5, ddim_steps=50)
+            # self.predict_thread(uuid="init", prompt="星空", n_iter=1, n_samples=2, H=512, W=512, scale=7.5, ddim_steps=50)
+            self.predict(uuid="init", prompt="星空", n_iter=1, n_samples=2, H=512, W=512, scale=7.5, ddim_steps=50)
 
             logger.warning("[WuKong] init finish. ")
             self.init_flag = True

@@ -71,9 +71,9 @@ def predict():
             my_uuid, text, style, n_iter, n_samples, scale, ddim_steps, h, w))
 
         if text is not None:
-            if type is not None:
-                if type == "custom":
-                    text = "α " + text
+            # if type is not None:
+            #     if type == "custom":
+            #         text = "α " + text
 
             if style is not None:
                 prompt = text + " " + style

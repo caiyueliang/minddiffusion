@@ -335,11 +335,11 @@ class WuKong(object):
 
         batch_size = n_samples
 
-        if self.class_name is not None:
-            if "α" in prompt:
-                prompt = prompt.replace("α", "α{}".format(self.class_name))
-            else:
-                prompt = "{} {}".format(self.class_name, prompt)
+        # if self.class_name is not None:
+        #     if "α" in prompt:
+        #         prompt = prompt.replace("α", "α{}".format(self.class_name))
+        #     else:
+        #         prompt = "{} {}".format(self.class_name, prompt)
 
         # prompt = opt.prompt
         # assert prompt is not None
